@@ -17,13 +17,13 @@ import java.util.UUID;
 public class UsersServiceImpl implements UsersService {
 
     BCryptPasswordEncoder bCryptPasswordEncoder;
-//    UsersRepository usersRepository;
+    UsersRepository usersRepository;
 
 
     @Autowired
-    public UsersServiceImpl(  BCryptPasswordEncoder bcryptPasswordEncoder) {
+    public UsersServiceImpl(  BCryptPasswordEncoder bcryptPasswordEncoder, UsersRepository usersRepository) {
         this.bCryptPasswordEncoder=bcryptPasswordEncoder;
-//        this.usersRepository=usersRepository;
+        this.usersRepository=usersRepository;
     }
 
     @Override
@@ -34,7 +34,8 @@ public class UsersServiceImpl implements UsersService {
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
         UserEntity userEntity = modelMapper.map(userDetails,UserEntity.class);
-        System.out.println(userEntity);
+        usersRepository.save(userEntity);
+        System.out.println("SUCCESS!");
         return null;
     }
 
