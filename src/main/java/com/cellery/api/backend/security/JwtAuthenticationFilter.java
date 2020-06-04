@@ -6,6 +6,7 @@ import com.cellery.api.backend.ui.service.UsersService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -20,16 +21,17 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Objects;
 
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private AuthenticationManager authenticationManager;
     private UsersService usersService;
+    private Environment environment;
 
-    public JwtAuthenticationFilter(UsersService usersService, AuthenticationManager authenticationManager) {
+    public JwtAuthenticationFilter(Environment environment, UsersService usersService, AuthenticationManager authenticationManager) {
         this.authenticationManager = authenticationManager;
         this.usersService = usersService;
+        this.environment = environment;
         super.setAuthenticationManager(authenticationManager);
     }
 
@@ -37,9 +39,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     public Authentication attemptAuthentication(HttpServletRequest req, HttpServletResponse res) throws AuthenticationException {
         try {
             LoginRequestModel creds = new ObjectMapper().readValue(req.getInputStream(), LoginRequestModel.class);
-            System.out.println("REACHED HERE");
-            UsernamePasswordAuthenticationToken check = new UsernamePasswordAuthenticationToken(creds.getEmail(), creds.getPassword(), new ArrayList<>());
-            AuthenticationManager man = getAuthenticationManager();
             return getAuthenticationManager().authenticate(
                     new UsernamePasswordAuthenticationToken(
                             creds.getEmail(),
@@ -59,11 +58,12 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         UserDto userDetails = usersService.getUserDetailsByEmail(email);
 
+        System.out.println(environment.getProperty("authentication.jwt.secret"));
         //Generate JWT tokens
         String token = Jwts.builder()
                         .setSubject(userDetails.getUserId())
                 .setExpiration(new Date(System.currentTimeMillis() + Long.parseLong("12312414124")))
-                .signWith(SignatureAlgorithm.HS512,"asdvasdmasql$12455ASvvvasd@asd")
+                .signWith(SignatureAlgorithm.HS512,environment.getProperty("authentication.jwt.secret"))
                 .compact();
         response.addHeader("token",token);
         response.addHeader("userId",userDetails.getUserId());

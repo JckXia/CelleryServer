@@ -46,13 +46,13 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
     }
 
     private JwtAuthenticationFilter getAuthenticationFilter() throws Exception {
-        JwtAuthenticationFilter authenticationFilter = new JwtAuthenticationFilter(usersService, authenticationManager());
+        JwtAuthenticationFilter authenticationFilter = new JwtAuthenticationFilter(environment, usersService, authenticationManager());
         authenticationFilter.setFilterProcessesUrl("/users/login");
         return authenticationFilter;
     }
 
     private JwtAuthorizationFilter getAuthorizationFilter() throws Exception {
-        JwtAuthorizationFilter authorizationFilter = new JwtAuthorizationFilter(authenticationManager());
+        JwtAuthorizationFilter authorizationFilter = new JwtAuthorizationFilter(environment, authenticationManager());
         return authorizationFilter;
     }
 
