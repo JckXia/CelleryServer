@@ -141,7 +141,11 @@
             <artifactId>mysql-connector-java</artifactId>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-sleuth-zipkin -->
-
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>6.4.3</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
