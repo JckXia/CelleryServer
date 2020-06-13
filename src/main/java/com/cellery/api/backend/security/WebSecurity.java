@@ -12,12 +12,12 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.web.authentication.AuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.reactive.config.CorsRegistration;
-import org.springframework.web.reactive.config.CorsRegistry;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -53,10 +53,14 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    CorsConfigurationSource corsConfigurationSource(){
+    CorsConfigurationSource corsConfigurationSource() {
         //We will enable all traffic for now.
+        ArrayList<String> header = new ArrayList<>();
+        header.add("token");
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", new CorsConfiguration().applyPermitDefaultValues());
+        CorsConfiguration config = new CorsConfiguration();
+        config.setExposedHeaders(header);
+        source.registerCorsConfiguration("/**", config.applyPermitDefaultValues());
         return source;
     }
 
