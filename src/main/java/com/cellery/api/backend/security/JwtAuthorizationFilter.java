@@ -23,6 +23,8 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers," +
+                " X-Requested-With, Origin, X-Auth-Token, Tenant, request_date, token");
         String authorizationHeader = request.getHeader(environment.getProperty("authentication.authorization"));
         if (authorizationHeader == null || !authorizationHeader.startsWith(environment.getProperty("authentication.bearer"))) {
             chain.doFilter(request, response);
