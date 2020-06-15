@@ -42,11 +42,11 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         }
         String token = authorizationHeader.replace(environment.getProperty("authentication.bearer"), "");
 
-        String userId = Jwts.parser().setSigningKey(environment.getProperty("authentication.jwt.secret")).parseClaimsJws(token).getBody().getSubject();
-        if (userId == null) {
+        String email = Jwts.parser().setSigningKey(environment.getProperty("authentication.jwt.secret")).parseClaimsJws(token).getBody().getSubject();
+        if (email == null) {
             return null;
         }
-        return new UsernamePasswordAuthenticationToken(userId, null, new ArrayList<>());
+        return new UsernamePasswordAuthenticationToken(email, null, new ArrayList<>());
     }
 
 }

@@ -2,6 +2,8 @@ package com.cellery.api.backend.ui.data;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -28,6 +30,17 @@ public class UserEntity implements Serializable {
     @Column(nullable = false, unique = true)
     private String encryptedPassword;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true,
+    fetch = FetchType.LAZY)
+    private List<RoutineEntity> routines = new ArrayList<>();
+
+    public List<RoutineEntity> getRoutines() {
+        return routines;
+    }
+
+    public void setRoutines(List<RoutineEntity> routines) {
+        this.routines = routines;
+    }
 
     public String getEncryptedPassword() {
         return encryptedPassword;

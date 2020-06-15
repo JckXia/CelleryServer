@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS `users` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
   `user_id` varchar(255),
-  `firstName` varchar(255),
-  `lastName` varchar(255),
+  `first_name` varchar(255),
+  `last_name` varchar(255),
   `encrypted_password` varchar(255),
   `created_at` timestamp
 );
@@ -36,7 +36,7 @@ CREATE TABLE  IF NOT EXISTS `Logs` (
   `timeobject_fk` int,
   `notes` varchar(255),
   `rating` numeric,
-  `isTimeOfMonth` boolean
+  `is_time_of_month` boolean
 );
 
 CREATE TABLE IF NOT EXISTS `Medications` (

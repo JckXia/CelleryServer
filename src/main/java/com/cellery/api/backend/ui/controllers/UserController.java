@@ -1,6 +1,5 @@
 package com.cellery.api.backend.ui.controllers;
 
-
 import com.cellery.api.backend.shared.UserDto;
 import com.cellery.api.backend.ui.model.request.CreateUserRequestModel;
 import com.cellery.api.backend.ui.model.response.CreateUserRespModel;
@@ -36,7 +35,7 @@ public class UserController {
         UserDto userDto = modelMapper.map(userDetail,UserDto.class);
         UserDto createUserResp = usersService.createUser(userDto);
         CreateUserRespModel returnValue=new ModelMapper().map(createUserResp,CreateUserRespModel.class);
-        return ResponseEntity.status(HttpStatus.OK).body(returnValue);
+        return ResponseEntity.status(HttpStatus.CREATED).body(returnValue);
     }
 
 }

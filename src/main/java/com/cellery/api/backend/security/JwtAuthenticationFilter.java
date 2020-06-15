@@ -61,7 +61,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         System.out.println(environment.getProperty("authentication.jwt.secret"));
         //Generate JWT tokens
         String token = Jwts.builder()
-                        .setSubject(userDetails.getUserId())
+                        .setSubject(email)
                 .setExpiration(new Date(System.currentTimeMillis() + Long.parseLong("12312414124")))
                 .signWith(SignatureAlgorithm.HS512,environment.getProperty("authentication.jwt.secret"))
                 .compact();
