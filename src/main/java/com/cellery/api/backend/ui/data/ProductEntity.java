@@ -25,7 +25,9 @@ public class ProductEntity implements Serializable {
     private String description;
 
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "routine_fk")
+    @JoinTable(name = "ROUTINE_PRODUCTS",
+            joinColumns = @JoinColumn(name = "id_routine", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name =  "id_product", referencedColumnName = "id"))
     private List<RoutineEntity> routines = new ArrayList<>();
 
     public String getProductId() {
