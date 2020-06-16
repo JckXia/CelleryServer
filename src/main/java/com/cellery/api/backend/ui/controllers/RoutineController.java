@@ -70,7 +70,7 @@ public class RoutineController {
         return ResponseEntity.status(HttpStatus.CREATED).body(returnVal);
     }
 
-    @PutMapping(path = "/remove-products")
+    @Patch(path = "/remove-products")
     public ResponseEntity<RemoveRoutineProductsRespModel> removeProducts(@RequestHeader(value = "${authentication.authorization}") String auth,
                                                                          @Valid @RequestBody RemoveRoutineProductsReqModel removeProducts) {
         // TODO

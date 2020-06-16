@@ -1,6 +1,7 @@
 package com.cellery.api.backend.security;
 
 import com.cellery.api.backend.shared.UserDto;
+import com.cellery.api.backend.shared.Util.JwtUtil;
 import com.cellery.api.backend.ui.model.request.LoginRequestModel;
 import com.cellery.api.backend.ui.service.UsersService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,11 +28,14 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     private AuthenticationManager authenticationManager;
     private UsersService usersService;
     private Environment environment;
+    private JwtUtil jwtUtil;
 
-    public JwtAuthenticationFilter(Environment environment, UsersService usersService, AuthenticationManager authenticationManager) {
+    public JwtAuthenticationFilter(Environment environment, UsersService usersService, AuthenticationManager authenticationManager,
+                                   JwtUtil jwtUtil) {
         this.authenticationManager = authenticationManager;
         this.usersService = usersService;
         this.environment = environment;
+        this.jwtUtil = jwtUtil;
         super.setAuthenticationManager(authenticationManager);
     }
 
@@ -60,11 +64,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         System.out.println(environment.getProperty("authentication.jwt.secret"));
         //Generate JWT tokens
-        String token = Jwts.builder()
-                        .setSubject(email)
-                .setExpiration(new Date(System.currentTimeMillis() + Long.parseLong("12312414124")))
-                .signWith(SignatureAlgorithm.HS512,environment.getProperty("authentication.jwt.secret"))
-                .compact();
+        String token = jwtUtil.generateToken(email);
         response.addHeader("token",token);
         response.addHeader("userId",userDetails.getUserId());
     }

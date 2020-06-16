@@ -11,4 +11,7 @@ public class ProductController {
 
     @Autowired
     private ProductsService ps;
+
+
+    // TODO: Create product (post), delete product by id (delete), update product by id (patch), bulk delete (delete), get product by id
 }
