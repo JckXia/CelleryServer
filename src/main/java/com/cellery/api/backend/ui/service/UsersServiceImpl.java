@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -36,12 +37,14 @@ public class UsersServiceImpl implements UsersService {
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
         UserEntity userEntity = modelMapper.map(userDetails, UserEntity.class);
+        userEntity.setRoutines(new ArrayList<>());
         usersRepository.save(userEntity);
 
         UserDto returnDto = modelMapper.map(userEntity, UserDto.class);
         return returnDto;
     }
 
+    @Transactional
     @Override
     public UserDto getUserDetailsByEmail(String email) {
         UserEntity userEntityDbObject = usersRepository.findByEmail(email);
