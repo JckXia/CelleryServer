@@ -1,21 +1,11 @@
 package com.cellery.api.backend.ui.controllers;
 
-import com.cellery.api.backend.shared.RoutineDto;
-import com.cellery.api.backend.shared.UserDto;
-import com.cellery.api.backend.ui.model.response.RoutineRespModel;
 import com.cellery.api.backend.ui.service.RoutinesService;
 import com.cellery.api.backend.ui.service.UsersService;
-import io.jsonwebtoken.Jwts;
-import org.modelmapper.ModelMapper;
-import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(path = "/routines")
