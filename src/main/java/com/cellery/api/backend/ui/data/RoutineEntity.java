@@ -15,13 +15,14 @@ public class RoutineEntity implements Serializable {
     @GeneratedValue
     private long id;
 
+    @Column
     private String routineId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY) // owning side of relationship
     @JoinColumn(name = "user_fk")
     private UserEntity user;
 
-    @ManyToMany(mappedBy = "routines", fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "routines", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, fetch = FetchType.LAZY) // owning side
     private List<ProductEntity> products = new ArrayList<>();
 
     /* LogEntity should have a private array of RoutineEntities similar to UserEntity and similar

@@ -50,7 +50,7 @@ public class UsersServiceImpl implements UsersService {
 
     @Transactional
     @Override
-    public UserDto getUserDetailsByEmail(String email) {
+    public UserDto getUserDetailsByEmail(String email) throws UsernameNotFoundException {
         UserEntity userEntityDbObject = usersRepository.findByEmail(email);
         if (userEntityDbObject == null) {
             throw new UsernameNotFoundException("User " + email + " does not exist!");

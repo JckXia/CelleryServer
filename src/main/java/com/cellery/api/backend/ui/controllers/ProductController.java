@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,12 +26,12 @@ import java.util.stream.Collectors;
 @RequestMapping("/products")
 public class ProductController {
 
-    private ProductsService ps;
+    private ProductsService productsService;
     private MapperUtil modelMapper;
 
     @Autowired
     ProductController(ProductsService ps, MapperUtil mapper) {
-        this.ps = ps;
+        this.productsService = ps;
         this.modelMapper = mapper;
     }
 
@@ -43,7 +44,7 @@ public class ProductController {
     public ResponseEntity<ProductRespModel> getProduct(@Valid @RequestBody ProductRequestModel productReq) {
 
         try {
-            ProductDto returnDto = ps.getProduct(productReq.getProductId());
+            ProductDto returnDto = productsService.getProduct(productReq.getProductId());
 
             ProductRespModel returnVal = modelMapper.strictMapper().map(returnDto, ProductRespModel.class);
 
@@ -60,7 +61,7 @@ public class ProductController {
         ModelMapper mapper = modelMapper.strictMapper();
 
         ProductDto productDto = mapper.map(product, ProductDto.class);
-        ProductDto returnDto = ps.createProduct(productDto);
+        ProductDto returnDto = productsService.createProduct(productDto);
 
         ProductRespModel returnVal = mapper.map(returnDto, ProductRespModel.class);
         return ResponseEntity.status(HttpStatus.CREATED).body(returnVal);
@@ -71,12 +72,14 @@ public class ProductController {
 
         try {
             String id = productId.getProductId();
-            Boolean returnBool = ps.deleteProduct(id);
+            Boolean returnBool = productsService.deleteProduct(id);
 
             return ResponseEntity.status(HttpStatus.OK).body(returnBool);
 
-        } catch (Exception e) {
+        } catch (FileNotFoundException e) { // product does not exist
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (UnsupportedOperationException e) { // product belongs to a routine
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
 
@@ -85,8 +88,12 @@ public class ProductController {
         // map to a list of productIds
         List<String> productIds = productsToDelete.stream().map(product -> product.getProductId()).collect(Collectors.toList());
 
-        Integer numDeleted = ps.deleteProducts(productIds);
+        Integer numDeleted = productsService.deleteProducts(productIds);
 
+        /* The frontend can check if the list size request is equal to the number deleted
+            If not (and the number deleted will be less than the list size request), products either do not
+            exist or they are still part of (a) routine(s).
+         */
         return ResponseEntity.status(HttpStatus.OK).body(numDeleted);
     }
 
@@ -96,7 +103,7 @@ public class ProductController {
             ModelMapper mapper = modelMapper.strictMapper();
 
             ProductDto productDto = mapper.map(productInfo, ProductDto.class);
-            ProductDto returnDto = ps.editProduct(productDto);
+            ProductDto returnDto = productsService.editProduct(productDto);
 
             ProductRespModel returnVal = mapper.map(returnDto, ProductRespModel.class);
 

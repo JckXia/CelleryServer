@@ -24,10 +24,10 @@ public class ProductEntity implements Serializable {
     @Column(name = "product_description")
     private String description;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "ROUTINE_PRODUCTS",
-            joinColumns = @JoinColumn(name = "id_routine", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name =  "id_product", referencedColumnName = "id"))
+    @ManyToMany
+    @JoinTable(name = "routine_products",
+            joinColumns = @JoinColumn(name = "id_routine"),
+            inverseJoinColumns = @JoinColumn(name =  "id_product"))
     private List<RoutineEntity> routines = new ArrayList<>();
 
     public String getProductId() {

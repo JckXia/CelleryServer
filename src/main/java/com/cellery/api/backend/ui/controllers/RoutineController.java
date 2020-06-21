@@ -1,11 +1,26 @@
 package com.cellery.api.backend.ui.controllers;
 
+import com.cellery.api.backend.shared.RoutineDto;
+import com.cellery.api.backend.shared.UserDto;
+import com.cellery.api.backend.shared.Util.JwtUtil;
+import com.cellery.api.backend.shared.Util.MapperUtil;
+import com.cellery.api.backend.ui.model.request.CreateRoutineRequestModel;
+import com.cellery.api.backend.ui.model.response.RoutineRespModel;
 import com.cellery.api.backend.ui.service.RoutinesService;
 import com.cellery.api.backend.ui.service.UsersService;
+import com.googlecode.gentyref.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import javax.xml.ws.Response;
+import java.io.FileNotFoundException;
+import java.lang.reflect.Type;
+import java.util.List;
 
 @RestController
 @RequestMapping(path = "/routines")
@@ -14,55 +29,97 @@ public class RoutineController {
     private Environment env;
     private RoutinesService routinesService;
     private UsersService usersService;
+    private MapperUtil mapper;
+    private JwtUtil jwtUtil;
 
     @Autowired
-    RoutineController(Environment env, RoutinesService rs, UsersService us) {
+    RoutineController(Environment env, RoutinesService rs, UsersService us, MapperUtil mapper, JwtUtil jwtUtil) {
         this.env = env;
         routinesService = rs;
         usersService = us;
+        this.mapper = mapper;
+        this.jwtUtil = jwtUtil;
     }
 
-    // TODO: create RemoveRoutine<Resp/Req>Model and CreateRoutine<Resp/Req>Model
-
-    /*@GetMapping
-    public ResponseEntity<RoutineRespModel> getAllRoutines(@RequestHeader(value = "${authentication.authorization}") HttpHeaders headers) {
-        TODO
+    private Boolean emptyStr(String str) {
+        return str == null || str.isEmpty();
     }
+
+    private Type routineRespModelListType() {
+        return new TypeToken<List<RoutineRespModel>>(){}.getType();
+    }
+
+    private UserDto getUserDto(String auth) throws UsernameNotFoundException {
+        String email = jwtUtil.getEmailFromToken(auth);
+        UserDto userDto = usersService.getUserDetailsByEmail(email);
+        return userDto;
+    }
+
+    @GetMapping
+    public String test() {
+        return "This is /routines endpoint";
+    }
+    // TODO: delete routine (all products will detach from routine), edit routine
+
+    @GetMapping(path="/get")
+    public ResponseEntity<List<RoutineRespModel>> getRoutines(@RequestHeader(value = "${authentication.authorization}") String auth) {
+
+        if (emptyStr(auth)) { // if token is empty/null
+            return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(null);
+        }
+
+        try {
+            auth = auth.replace(env.getProperty("authentication.bearer"), "");
+            UserDto userDto = getUserDto(auth);
+
+            if (!jwtUtil.validateToken(auth, userDto)) {
+                return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(null);
+            }
+
+            List<RoutineDto> usersRoutines = routinesService.getRoutines(jwtUtil.getEmailFromToken(auth));
+            List<RoutineRespModel> returnVal = mapper.strictMapper().map(usersRoutines, routineRespModelListType());
+            return ResponseEntity.status(HttpStatus.OK).body(returnVal);
+
+        } catch (UsernameNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } // jwt related exceptions are caught by the web filter
+    }
+
 
     @PostMapping(path="/create")
-    @ResponseStatus(HttpStatus.CREATED) // change this
-    public ResponseEntity<CreateRoutineRespModel> create(@RequestHeader(value = "${authentication.authorization}") String auth,
-                                @Valid @RequestBody CreateRoutineReqModel createRoutineReqModel) {
+    public ResponseEntity<RoutineRespModel> createRoutine(@RequestHeader(value = "${authentication.authorization}") String auth,
+                                @Valid @RequestBody CreateRoutineRequestModel createRoutine) {
 
-        if (auth == null || auth.isEmpty()) {
-            // TODO
-        }
-        String token = auth.replace(env.getProperty("authentication.bearer"), "");
-        String user = Jwts.parser().setSigningKey(env.getProperty("authentication.jwt.secret")).parseClaimsJws(token).getBody().getSubject();
-
-        if (user == null || user.isEmpty()) {
-          // TODO
+        if (emptyStr(auth) || createRoutine.getProducts().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(null);
         }
 
-        // check if user can create new routine
-        UserDto userInfo = usersService.getUserDetailsByEmail(user);
-        if (userInfo.getRoutines().size() == 2) {
-            // TODO
+        try {
+            auth = auth.replace(env.getProperty("authentication.bearer"), "");
+            UserDto userDto = getUserDto(auth);
+
+            if (!jwtUtil.validateToken(auth, userDto) || userDto.getRoutines().size() == 2) { // max routines a user can have is 2
+                return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(null);
+            }
+
+            // create routine and add it to user
+            RoutineDto createdDto = routinesService.createRoutine(jwtUtil.getEmailFromToken(auth), createRoutine.getProducts());
+
+            RoutineRespModel returnVal = mapper.strictMapper().map(createdDto, RoutineRespModel.class);
+            return ResponseEntity.status(HttpStatus.CREATED).body(returnVal);
+
+        } catch (RuntimeException e) {
+            // the user trying to create routine does not exist,
+            // user has valid jwt but email does not match the valid user, or
+            // user is adding a nonexistent product to new routine
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
-
-        // can create new routine
-        ModelMapper mapper = new ModelMapper();
-        mapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-
-        RoutineDto routineDto = mapper.map(createRoutineReqModel, RoutineDto.class);
-        RoutineDto createRoutineResp = routinesService.createRoutine(routineDto);
-        CreateRoutineRespModel returnVal = new ModelMapper().map(createRoutineResp, CreateRoutineRespModel.class);
-        return ResponseEntity.status(HttpStatus.CREATED).body(returnVal);
     }
 
-    @Patch(path = "/remove-products")
-    public ResponseEntity<RemoveRoutineProductsRespModel> removeProducts(@RequestHeader(value = "${authentication.authorization}") String auth,
-                                                                         @Valid @RequestBody RemoveRoutineProductsReqModel removeProducts) {
+    /*
+    @PatchMapping(path = "/edit")
+    public ResponseEntity<> removeProducts(@RequestHeader(value = "${authentication.authorization}") String auth,
+                                                                         @Valid @RequestBody  removeProducts) {
         // TODO
     }*/
 }

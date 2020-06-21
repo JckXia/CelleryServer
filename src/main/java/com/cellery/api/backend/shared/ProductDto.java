@@ -11,7 +11,7 @@ public class ProductDto implements Serializable {
     private String productId;
     private String name;
     private String description;
-    private List<RoutineRespModel> routines;
+    private List<RoutineDto> routines;
 
     public static long getSerialVersionUID() {
         return serialVersionUID;
@@ -41,11 +41,11 @@ public class ProductDto implements Serializable {
         this.description = description;
     }
 
-    public List<RoutineRespModel> getRoutines() {
+    public List<RoutineDto> getRoutines() {
         return routines;
     }
 
-    public void setRoutines(List<RoutineRespModel> routines) {
+    public void setRoutines(List<RoutineDto> routines) {
         this.routines = routines;
     }
 }

@@ -14,17 +14,17 @@ public class UserDto implements Serializable {
     private String password;
     private String userId;
     private String encryptedPassword;
-    private List<RoutineRespModel> routines;
+    private List<RoutineDto> routines;
 
     public static long getSerialVersionUID() {
         return serialVersionUID;
     }
 
-    public List<RoutineRespModel> getRoutines() {
+    public List<RoutineDto> getRoutines() {
         return routines;
     }
 
-    public void setRoutines(List<RoutineRespModel> routines) {
+    public void setRoutines(List<RoutineDto> routines) {
         this.routines = routines;
     }
 

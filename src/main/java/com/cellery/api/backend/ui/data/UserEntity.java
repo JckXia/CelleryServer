@@ -30,8 +30,7 @@ public class UserEntity implements Serializable {
     @Column(nullable = false, unique = true)
     private String encryptedPassword;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true,
-    fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<RoutineEntity> routines = new ArrayList<>();
 
     public List<RoutineEntity> getRoutines() {
