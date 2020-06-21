@@ -1,11 +1,9 @@
 package com.cellery.api.backend.ui.service;
 
 import com.cellery.api.backend.shared.ProductDto;
-import com.cellery.api.backend.shared.RoutineDto;
 import com.cellery.api.backend.shared.Util.MapperUtil;
 import com.cellery.api.backend.ui.data.ProductEntity;
 import com.cellery.api.backend.ui.data.ProductsRepository;
-import com.cellery.api.backend.ui.data.RoutineEntity;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

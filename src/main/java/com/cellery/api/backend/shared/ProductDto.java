@@ -1,7 +1,5 @@
 package com.cellery.api.backend.shared;
 
-import com.cellery.api.backend.ui.model.response.RoutineRespModel;
-
 import java.io.Serializable;
 import java.util.List;
 

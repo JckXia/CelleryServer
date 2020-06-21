@@ -1,11 +1,8 @@
 package com.cellery.api.backend.ui.service;
 
-import com.cellery.api.backend.shared.ProductDto;
 import com.cellery.api.backend.shared.RoutineDto;
-import com.cellery.api.backend.shared.UserDto;
 import com.cellery.api.backend.shared.Util.MapperUtil;
 import com.cellery.api.backend.ui.data.*;
-import com.cellery.api.backend.ui.model.response.RoutineRespModel;
 import com.googlecode.gentyref.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
