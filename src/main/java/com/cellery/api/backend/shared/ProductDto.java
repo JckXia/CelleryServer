@@ -1,7 +1,6 @@
 package com.cellery.api.backend.shared;
 
 import java.io.Serializable;
-import java.util.List;
 
 public class ProductDto implements Serializable {
     private static final long serialVersionUID = 3447096282640163255L;
@@ -9,7 +8,6 @@ public class ProductDto implements Serializable {
     private String productId;
     private String name;
     private String description;
-    private List<RoutineDto> routines;
 
     public static long getSerialVersionUID() {
         return serialVersionUID;
@@ -37,13 +35,5 @@ public class ProductDto implements Serializable {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public List<RoutineDto> getRoutines() {
-        return routines;
-    }
-
-    public void setRoutines(List<RoutineDto> routines) {
-        this.routines = routines;
     }
 }

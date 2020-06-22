@@ -6,7 +6,6 @@ public class ProductRespModel {
     private String productId;
     private String name;
     private String description;
-    private List<RoutineRespModel> routines;
 
     public String getProductId() {
         return productId;
@@ -30,13 +29,5 @@ public class ProductRespModel {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public List<RoutineRespModel> getRoutines() {
-        return routines;
-    }
-
-    public void setRoutines(List<RoutineRespModel> routines) {
-        this.routines = routines;
     }
 }

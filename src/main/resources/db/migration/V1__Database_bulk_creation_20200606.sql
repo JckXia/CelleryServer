@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS `Images` (
 ALTER TABLE `routines`  ADD CONSTRAINT fk_routines_user FOREIGN KEY (`user_fk`) REFERENCES `users` (id);
 ALTER TABLE `routines` ADD CONSTRAINT fk_routines_log FOREIGN KEY (`log_fk`) REFERENCES `Logs` (id);
 
-ALTER TABLE `routine_products` ADD CONSTRAINT fk_routines_routine_products FOREIGN KEY (`id_routine`) REFERENCES `routines`(id) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `routine_products` ADD CONSTRAINT fk_routines_routine_products FOREIGN KEY (`id_routine`) REFERENCES `routines`(id) ON UPDATE CASCADE;
 ALTER TABLE `routine_products` ADD CONSTRAINT fk_products_routine_products FOREIGN KEY (`id_product`) REFERENCES `Products`(id) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE `Logs` ADD CONSTRAINT fk_log_time FOREIGN KEY (`time_object_fk`) references `TimeObject`(id);

@@ -22,7 +22,10 @@ public class RoutineEntity implements Serializable {
     @JoinColumn(name = "user_fk")
     private UserEntity user;
 
-    @ManyToMany(mappedBy = "routines", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, fetch = FetchType.LAZY) // owning side
+    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @JoinTable(name = "routine_products",
+            joinColumns = @JoinColumn(name = "id_product", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name =  "id_routine", referencedColumnName = "id"))
     private List<ProductEntity> products = new ArrayList<>();
 
     /* LogEntity should have a private array of RoutineEntities similar to UserEntity and similar

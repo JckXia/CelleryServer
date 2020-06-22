@@ -45,8 +45,7 @@ public class ProductController {
         try {
             ProductDto returnDto = productsService.getProduct(productReq.getProductId());
 
-            ProductRespModel returnVal = modelMapper.strictMapper().map(returnDto, ProductRespModel.class);
-
+            ProductRespModel returnVal = new ModelMapper().map(returnDto, ProductRespModel.class);
             return ResponseEntity.status(HttpStatus.OK).body(returnVal);
 
         } catch (FileNotFoundException e) {
@@ -67,17 +66,16 @@ public class ProductController {
     }
 
     @DeleteMapping(path="/delete")
-    public ResponseEntity<Boolean> deleteProductById(@Valid @RequestBody DeleteProductRequestModel productId) {
-
+    public ResponseEntity<String> deleteProductById(@Valid @RequestBody DeleteProductRequestModel productId) {
         try {
             String id = productId.getProductId();
-            Boolean returnBool = productsService.deleteProduct(id);
+            productsService.deleteProduct(id);
 
-            return ResponseEntity.status(HttpStatus.OK).body(returnBool);
+            return ResponseEntity.status(HttpStatus.OK).body("Successfully deleted product.");
 
         } catch (FileNotFoundException e) { // product does not exist
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        } catch (UnsupportedOperationException e) { // product belongs to a routine
+        } catch (UnsupportedOperationException e) { // product belongs to one or both routines
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }

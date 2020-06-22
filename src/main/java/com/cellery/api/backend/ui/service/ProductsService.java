@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,8 +24,17 @@ public class ProductsService {
         this.mapper = mapper;
     }
 
-    public ProductDto getProduct(String wantedProductId) throws FileNotFoundException {
+    /*private ProductDto convertEntityToDto(ProductEntity src) {
+        Converter<List<RoutineEntity>, Integer> convert = arr -> arr.getSource() == null ? 0 : arr.getSource().size();
 
+        ModelMapper lilMap = this.mapper.strictMapper();
+        lilMap.createTypeMap(ProductEntity.class, ProductDto.class).addMappings(mapper ->
+                mapper.using(convert).map(ProductEntity::getRoutines, ProductDto::setRoutines));
+
+        return lilMap.map(src, ProductDto.class);
+    }*/
+
+    public ProductDto getProduct(String wantedProductId) throws FileNotFoundException {
         if (!productsRepository.existsByProductId(wantedProductId)) {
             throw new FileNotFoundException("Product does not exist");
         }
@@ -38,40 +46,29 @@ public class ProductsService {
     }
 
     public ProductDto createProduct(ProductDto newProduct) {
-
         newProduct.setProductId((UUID.randomUUID().toString()));
 
         ModelMapper modelMapper = mapper.strictMapper();
-
         ProductEntity productEntity = modelMapper.map(newProduct, ProductEntity.class);
-
-        // make sure routines is empty
-        productEntity.setRoutines(new ArrayList<>());
 
         productsRepository.save(productEntity); // save to database
 
-        ProductDto returnDto = modelMapper.map(productEntity, ProductDto.class);
+        ProductDto returnDto = mapper.strictMapper().map(productEntity, ProductDto.class);
         return returnDto;
     }
 
-    /* Deletes a product by the productId
-       and returns true when the product has been deleted
-     */
-    public Boolean deleteProduct(String deleteProductId) throws FileNotFoundException, UnsupportedOperationException {
-
+    // Deletes a product by the productId
+    public void deleteProduct(String deleteProductId) throws FileNotFoundException, UnsupportedOperationException {
         if (!productsRepository.existsByProductId(deleteProductId)) {
             throw new FileNotFoundException("Product does not exist");
         }
 
         ProductEntity productEntity = productsRepository.findByProductId(deleteProductId);
 
-        // cannot delete a product that belongs to a routine. the product must not belong to any routine to be deleted
-        if (!productEntity.getRoutines().isEmpty()) {
-            throw new UnsupportedOperationException("Product belongs to a routine");
-        }
-
+        // The product will be deleted regardless if it is in a routine or not. On the frontend, the user
+        // will be prompted about the effects of deleting the product if it is in a routine (it will disappear from
+        // routines it is in)
         productsRepository.delete(productEntity);
-        return true;
     }
 
     /* In a list of products to delete, if one product does not exist, we will
@@ -79,7 +76,6 @@ public class ProductsService {
         Returns the number of products deleted
      */
     public Integer deleteProducts(List<String> ids) {
-
         Integer numDeleted = 0;
 
         for (String id: ids) {
@@ -94,7 +90,6 @@ public class ProductsService {
     }
 
     public ProductDto editProduct(ProductDto product) throws FileNotFoundException {
-
         if (!productsRepository.existsByProductId(product.getProductId())) {
             throw new FileNotFoundException("Product does not exist");
         }

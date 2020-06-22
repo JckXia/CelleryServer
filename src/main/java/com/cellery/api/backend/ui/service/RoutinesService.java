@@ -42,30 +42,20 @@ public class RoutinesService {
 
     // TODO: Fix problem with routine and products relationship not updating correctly in db
     public RoutineDto createRoutine(String email, List<String> addProducts) throws RuntimeException {
-        RoutineDto newRoutine = new RoutineDto();
-        newRoutine.setRoutineId(UUID.randomUUID().toString());
-
-        // list of refs to db objects
-        List<ProductEntity> productEntities = addProducts.stream().map(wrap(id -> productsRepository.getOneByProductId(id))).collect(Collectors.toList());
-
-        RoutineEntity routineEntity = mapper.strictMapper().map(newRoutine, RoutineEntity.class);
-        routineEntity.setProducts(productEntities);
+        RoutineEntity routineEntity = new RoutineEntity();
+        routineEntity.setRoutineId(UUID.randomUUID().toString());
 
         // add user to routine
-        UserEntity userEntity = usersRepository.getOneByEmail(email);
+        UserEntity userEntity = usersRepository.getOneByEmail(email); // get ref to db object
         routineEntity.setUser(userEntity); // user is UserEntity type; not PersistentBag type (which won't save the routine properly)
         routinesRepository.save(routineEntity);
 
-        // get ref to this new routine
-        RoutineEntity freshRoutine = routinesRepository.getOneByRoutineId(routineEntity.getRoutineId());
-
-        // add routine to each product
-        for (ProductEntity product: productEntities) {
-            List<RoutineEntity> currentRoutines = product.getRoutines();
-            currentRoutines.add(freshRoutine);
-            product.setRoutines(currentRoutines);
-            productsRepository.save(product); // this line gives sql ERROR
-        }
+        // TODO: SAME FOREIGN KEY CONSTRAINT ERR ABOUT ROUTINE ID NOT EXISTING? ALTHOUGH IT DOES, NEEDS FIX
+        // get product entities
+        List<ProductEntity> productEntities = addProducts.stream().map(wrap(id -> productsRepository.findByProductId(id))).collect(Collectors.toList());
+        RoutineEntity savedRoutine = routinesRepository.getOneByRoutineId(routineEntity.getRoutineId());
+        savedRoutine.setProducts(productEntities); // add existing parent values (products) into existing child (routine)
+        routinesRepository.save(savedRoutine);
 
         RoutineDto returnDto = mapper.strictMapper().map(routineEntity, RoutineDto.class);
         return returnDto;
