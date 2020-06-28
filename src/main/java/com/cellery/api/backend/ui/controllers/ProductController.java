@@ -35,16 +35,14 @@ public class ProductController {
     private UsersService usersService;
     private MapperUtil modelMapper;
     private JwtUtil jwtUtil;
-    private Utils utils;
 
     @Autowired
-    ProductController(Environment env, ProductsService ps, UsersService usersService, MapperUtil mapper, JwtUtil jwtUtil, Utils utils) {
+    ProductController(Environment env, ProductsService ps, UsersService usersService, MapperUtil mapper, JwtUtil jwtUtil) {
         this.env = env;
         this.productsService = ps;
         this.usersService = usersService;
         this.modelMapper = mapper;
         this.jwtUtil = jwtUtil;
-        this.utils = utils;
     }
 
     private Type productRespModelListType() {
@@ -60,10 +58,6 @@ public class ProductController {
     // get all products
     @GetMapping
     public ResponseEntity<List<ProductRespModel>> getProducts(@RequestHeader(value = "${authentication.authorization}") String auth) {
-        if (utils.emptyStr(auth)) { // if token is empty/null
-            return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(null);
-        }
-
         try {
             auth = auth.replace(env.getProperty("authentication.bearer"), "");
             UserDto userDto = getUserDto(auth);
@@ -85,7 +79,6 @@ public class ProductController {
     // get product by id
     @GetMapping(path="/{id}")
     public ResponseEntity<ProductRespModel> getProduct(@PathVariable String id) {
-
         try {
             ProductDto returnDto = productsService.getProduct(id);
 
@@ -101,10 +94,6 @@ public class ProductController {
     @PostMapping
     public ResponseEntity<ProductRespModel> createProduct(@RequestHeader(value = "${authentication.authorization}") String auth,
                                                           @Valid @RequestBody CreateProductRequestModel product) {
-        if (utils.emptyStr(auth) || (product.getDescription().isEmpty() && product.getName().isEmpty())) {
-            return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(null);
-        }
-
         try {
             auth = auth.replace(env.getProperty("authentication.bearer"), "");
             UserDto userDto = getUserDto(auth);

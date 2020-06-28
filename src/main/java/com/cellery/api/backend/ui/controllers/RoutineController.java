@@ -31,16 +31,14 @@ public class RoutineController {
     private UsersService usersService;
     private MapperUtil mapper;
     private JwtUtil jwtUtil;
-    private Utils utils;
 
     @Autowired
-    RoutineController(Environment env, RoutinesService rs, UsersService us, MapperUtil mapper, JwtUtil jwtUtil, Utils utils) {
+    RoutineController(Environment env, RoutinesService rs, UsersService us, MapperUtil mapper, JwtUtil jwtUtil) {
         this.env = env;
         routinesService = rs;
         usersService = us;
         this.mapper = mapper;
         this.jwtUtil = jwtUtil;
-        this.utils = utils;
     }
 
     private Type routineRespModelListType() {
@@ -56,11 +54,6 @@ public class RoutineController {
     // get all routines
     @GetMapping
     public ResponseEntity<List<RoutineRespModel>> getRoutines(@RequestHeader(value = "${authentication.authorization}") String auth) {
-
-        if (utils.emptyStr(auth)) { // if token is empty/null
-            return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(null);
-        }
-
         try {
             auth = auth.replace(env.getProperty("authentication.bearer"), "");
             UserDto userDto = getUserDto(auth);
@@ -82,11 +75,6 @@ public class RoutineController {
     @PostMapping
     public ResponseEntity<RoutineRespModel> createRoutine(@RequestHeader(value = "${authentication.authorization}") String auth,
                                 @Valid @RequestBody ProductsInRoutineRequestModel createRoutine) {
-
-        if (utils.emptyStr(auth) || createRoutine.getProductIds().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(null);
-        }
-
         try {
             auth = auth.replace(env.getProperty("authentication.bearer"), "");
             UserDto userDto = getUserDto(auth);
