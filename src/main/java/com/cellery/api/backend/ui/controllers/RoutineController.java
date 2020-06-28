@@ -122,7 +122,7 @@ public class RoutineController {
     }
 
     // remove products from routine
-    @PatchMapping(path = "/{id}")
+    @PatchMapping(path = "/remove-products/{id}")
     public ResponseEntity<RoutineRespModel> removeProductsFromRoutine(@PathVariable String id,
                                                                       @Valid @RequestBody ProductsInRoutineRequestModel productsToRemove) {
         try {
@@ -141,7 +141,7 @@ public class RoutineController {
     }
 
     // add products to routine
-    @PatchMapping(path = "/{id}")
+    @PatchMapping(path = "/add-products/{id}")
     public ResponseEntity<RoutineRespModel> addProductsToRoutine(@PathVariable String id,
                                                                  @Valid @RequestBody ProductsInRoutineRequestModel productsToAdd) {
         try {
