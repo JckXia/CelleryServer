@@ -99,4 +99,8 @@ public class UserEntity implements Serializable {
     public void setUserProducts(List<ProductEntity> userProducts) {
         this.userProducts = userProducts;
     }
+
+    public void removeProductFromUser(ProductEntity product){
+        this.userProducts.remove(product);
+    }
 }

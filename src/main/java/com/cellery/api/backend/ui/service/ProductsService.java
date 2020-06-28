@@ -99,7 +99,9 @@ public class ProductsService {
                 routinesRepository.save(routine);
             }
         }
-
+       UserEntity user =  productEntity.getProductUser();
+        user.removeProductFromUser(productEntity);
+        usersRepository.save(user);
         productsRepository.delete(productEntity);
     }
 
