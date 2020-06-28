@@ -91,7 +91,8 @@ public class RoutineController {
         } catch (FileNotFoundException | RuntimeException e) {
             // the user trying to create routine does not exist,
             // user has valid jwt but email does not match the valid user,
-            // user is adding a nonexistent product to new routine, or
+            // user is adding a nonexistent product to new routine,
+            // user trying to create routine with no products, or
             // user does not own the products to add to the new routine
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }

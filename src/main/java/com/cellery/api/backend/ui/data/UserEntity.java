@@ -103,4 +103,8 @@ public class UserEntity implements Serializable {
     public void removeProductFromUser(ProductEntity product){
         this.userProducts.remove(product);
     }
+
+    public void removeRoutineFromUser(RoutineEntity routine) {
+        this.routines.remove(routine);
+    }
 }

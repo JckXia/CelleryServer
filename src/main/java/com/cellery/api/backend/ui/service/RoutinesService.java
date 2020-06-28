@@ -48,6 +48,10 @@ public class RoutinesService {
 
     @Transactional // do in one db transaction
     public RoutineDto createRoutine(String email, List<String> addProducts) throws RuntimeException, FileNotFoundException {
+        if (addProducts.isEmpty()) {
+            throw new FileNotFoundException("Cannot create routine with no products");
+        }
+
         // check if products belong to user
         userUtil.productsBelongToUser(email, addProducts);
 
@@ -86,6 +90,11 @@ public class RoutinesService {
         }
 
         RoutineEntity toDelete = routinesRepository.getOneByRoutineId(deleteRoutineId);
+
+        UserEntity user = toDelete.getUser();
+        user.removeRoutineFromUser(toDelete); // remove routine from user so routine can be deleted from db succesfully
+        usersRepository.save(user);
+
         routinesRepository.delete(toDelete);
     }
 
