@@ -4,7 +4,6 @@ import com.cellery.api.backend.shared.RoutineDto;
 import com.cellery.api.backend.shared.UserDto;
 import com.cellery.api.backend.shared.Util.JwtUtil;
 import com.cellery.api.backend.shared.Util.MapperUtil;
-import com.cellery.api.backend.shared.Util.Utils;
 import com.cellery.api.backend.ui.model.request.ProductsInRoutineRequestModel;
 import com.cellery.api.backend.ui.model.response.RoutineRespModel;
 import com.cellery.api.backend.ui.service.RoutinesService;
@@ -18,7 +17,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Type;
 import java.util.List;

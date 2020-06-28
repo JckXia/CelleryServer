@@ -43,7 +43,8 @@ public class ProductsService {
     }*/
 
     private Type productDtoList() {
-        return new TypeToken<List<ProductDto>>() {}.getType();
+        return new TypeToken<List<ProductDto>>() {
+        }.getType();
     }
 
     public List<ProductDto> getProducts(String email) {
@@ -90,7 +91,7 @@ public class ProductsService {
         // check if the routine(s) that have this product have only 1 product, so deleting the product
         // will delete that routine too
         List<RoutineEntity> inRoutines = productEntity.getRoutines();
-        for (RoutineEntity routine: inRoutines) {
+        for (RoutineEntity routine : inRoutines) {
             if (routine.getProducts().size() == 1) {
                 routinesRepository.delete(routine); // goodbye
             } else {
@@ -99,7 +100,7 @@ public class ProductsService {
                 routinesRepository.save(routine);
             }
         }
-       UserEntity user =  productEntity.getProductUser();
+        UserEntity user = productEntity.getProductUser();
         user.removeProductFromUser(productEntity);
         usersRepository.save(user);
         productsRepository.delete(productEntity);
@@ -116,7 +117,7 @@ public class ProductsService {
         userUtil.productsBelongToUser(email, ids);
 
         // any exceptions in the loop come from the product not existing in the db but still owned by the user
-        for (String id: ids) {
+        for (String id : ids) {
             try {
                 deleteProduct(email, id);
                 ++numDeleted;
