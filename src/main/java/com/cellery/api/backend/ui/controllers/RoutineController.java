@@ -5,6 +5,8 @@ import com.cellery.api.backend.shared.UserDto;
 import com.cellery.api.backend.shared.Util.JwtUtil;
 import com.cellery.api.backend.shared.Util.MapperUtil;
 import com.cellery.api.backend.ui.model.request.CreateRoutineRequestModel;
+import com.cellery.api.backend.ui.model.request.DeleteRoutineRequestModel;
+import com.cellery.api.backend.ui.model.request.ProductsInRoutineRequestModel;
 import com.cellery.api.backend.ui.model.response.RoutineRespModel;
 import com.cellery.api.backend.ui.service.RoutinesService;
 import com.cellery.api.backend.ui.service.UsersService;
@@ -17,6 +19,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.io.FileNotFoundException;
 import java.lang.reflect.Type;
 import java.util.List;
 
@@ -114,10 +117,45 @@ public class RoutineController {
         }
     }
 
-    /*
-    @PatchMapping(path = "/edit")
-    public ResponseEntity<> removeProducts(@RequestHeader(value = "${authentication.authorization}") String auth,
-                                                                         @Valid @RequestBody  removeProducts) {
-        // TODO
-    }*/
+    @DeleteMapping(path = "/delete")
+    public ResponseEntity<String> deleteRoutine(@Valid @RequestBody DeleteRoutineRequestModel deleteRoutine) {
+        try {
+            routinesService.deleteRoutine(deleteRoutine.getRoutineId());
+            return ResponseEntity.status(HttpStatus.OK).body("Successfully deleted routine");
+
+        } catch (FileNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
+
+    @PatchMapping(path = "/remove-products")
+    public ResponseEntity<RoutineRespModel> removeProductsFromRoutine(@Valid @RequestBody ProductsInRoutineRequestModel productsToRemove) {
+        try {
+            RoutineDto returnDto = routinesService.removeProductsFromRoutine(productsToRemove);
+
+            if (returnDto != null) {
+                RoutineRespModel returnVal = mapper.strictMapper().map(returnDto, RoutineRespModel.class);
+                return ResponseEntity.status(HttpStatus.OK).body(returnVal);
+            }
+            return ResponseEntity.status(HttpStatus.OK).body(null);
+
+        } catch (FileNotFoundException e) {
+            // when routine does not exist
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
+
+    @PatchMapping(path = "/add-products")
+    public ResponseEntity<RoutineRespModel> addProductsToRoutine(@Valid @RequestBody ProductsInRoutineRequestModel productsToAdd) {
+        try {
+            RoutineDto returnDto = routinesService.addProductsToRoutine(productsToAdd);
+
+            RoutineRespModel returnVal = mapper.strictMapper().map(returnDto, RoutineRespModel.class);
+            return ResponseEntity.status(HttpStatus.OK).body(returnVal);
+
+        } catch (FileNotFoundException e) {
+            // routine does not exist or a product does not exist
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
 }

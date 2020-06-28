@@ -1,7 +1,5 @@
 package com.cellery.api.backend.ui.model.response;
 
-import java.util.List;
-
 public class ProductRespModel {
     private String productId;
     private String name;

@@ -6,13 +6,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "Products")
+@Table(name = "products")
 public class ProductEntity implements Serializable {
 
     private static final long serialVersionUID = -353092878535428416L;
 
     @Id
     @GeneratedValue
+    @Column
     private long Id;
 
     @Column
@@ -23,6 +24,9 @@ public class ProductEntity implements Serializable {
 
     @Column(name = "product_description")
     private String description;
+
+    @ManyToMany(mappedBy = "products")
+    private List<RoutineEntity> routines = new ArrayList<>();
 
     public String getProductId() {
         return productId;
@@ -46,5 +50,17 @@ public class ProductEntity implements Serializable {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public List<RoutineEntity> getRoutines() {
+        return routines;
+    }
+
+    public void setRoutines(List<RoutineEntity> routines) {
+        this.routines = routines;
+    }
+
+    public void addRoutine(RoutineEntity routine) {
+        this.routines.add(routine);
     }
 }

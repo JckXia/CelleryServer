@@ -13,6 +13,7 @@ public class RoutineEntity implements Serializable {
 
     @Id
     @GeneratedValue
+    @Column
     private long id;
 
     @Column
@@ -24,8 +25,8 @@ public class RoutineEntity implements Serializable {
 
     @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinTable(name = "routine_products",
-            joinColumns = @JoinColumn(name = "id_product", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name =  "id_routine", referencedColumnName = "id"))
+            joinColumns = @JoinColumn(name =  "id_routine", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "id_product", referencedColumnName = "id"))
     private List<ProductEntity> products = new ArrayList<>();
 
     /* LogEntity should have a private array of RoutineEntities similar to UserEntity and similar
@@ -64,5 +65,13 @@ public class RoutineEntity implements Serializable {
 
     public void setRoutineId(String routineId) {
         this.routineId = routineId;
+    }
+
+    public void removeProductFromRoutine(ProductEntity product) {
+        this.products.remove(product);
+    }
+
+    public void addProductToRoutine(ProductEntity product) {
+        this.products.add(product);
     }
 }

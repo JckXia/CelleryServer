@@ -4,4 +4,5 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface RoutinesRepository extends CrudRepository<RoutineEntity, Long> {
     RoutineEntity getOneByRoutineId(String routineId);
+    Boolean existsByRoutineId(String routineId);
 }

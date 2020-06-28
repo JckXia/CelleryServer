@@ -3,10 +3,13 @@ package com.cellery.api.backend.ui.service;
 import com.cellery.api.backend.shared.RoutineDto;
 import com.cellery.api.backend.shared.Util.MapperUtil;
 import com.cellery.api.backend.ui.data.*;
+import com.cellery.api.backend.ui.model.request.ProductsInRoutineRequestModel;
 import com.googlecode.gentyref.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.io.FileNotFoundException;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.UUID;
@@ -32,7 +35,8 @@ public class RoutinesService {
     }
 
     private Type routineDtoListType() {
-        return new TypeToken<List<RoutineDto>>(){}.getType();
+        return new TypeToken<List<RoutineDto>>() {
+        }.getType();
     }
 
     public List<RoutineDto> getRoutines(String email) {
@@ -40,7 +44,7 @@ public class RoutinesService {
         return mapper.strictMapper().map(routines, routineDtoListType());
     }
 
-    // TODO: Fix problem with routine and products relationship not updating correctly in db
+    @Transactional // do in one db transaction
     public RoutineDto createRoutine(String email, List<String> addProducts) throws RuntimeException {
         RoutineEntity routineEntity = new RoutineEntity();
         routineEntity.setRoutineId(UUID.randomUUID().toString());
@@ -50,15 +54,89 @@ public class RoutinesService {
         routineEntity.setUser(userEntity); // user is UserEntity type; not PersistentBag type (which won't save the routine properly)
         routinesRepository.save(routineEntity);
 
-        // TODO: SAME FOREIGN KEY CONSTRAINT ERR ABOUT ROUTINE ID NOT EXISTING? ALTHOUGH IT DOES, NEEDS FIX
-        // get product entities
-        List<ProductEntity> productEntities = addProducts.stream().map(wrap(id -> productsRepository.findByProductId(id))).collect(Collectors.toList());
+        /// We must get the freshly saved routine entity to set it's products because otherwise, there is no entry
+        // in the db belonging to the routine, so by setting the products field on routineEntity will create
+        // foreign key constraint error on routine entity (as it does not exist in the db)
+        List<ProductEntity> productEntities = addProducts.stream().map(wrap(id -> productsRepository.getOneByProductId(id))).collect(Collectors.toList());
         RoutineEntity savedRoutine = routinesRepository.getOneByRoutineId(routineEntity.getRoutineId());
-        savedRoutine.setProducts(productEntities); // add existing parent values (products) into existing child (routine)
-        routinesRepository.save(savedRoutine);
+        savedRoutine.setProducts(productEntities); // add existing child values (products) into existing parent (routine)
+
+        // add routine to each product and save
+        for (ProductEntity product : productEntities) {
+            product.addRoutine(savedRoutine);
+            productsRepository.save(product);
+        }
+
+        routinesRepository.save(savedRoutine); // save routine to db again, this time with products
 
         RoutineDto returnDto = mapper.strictMapper().map(routineEntity, RoutineDto.class);
         return returnDto;
     }
 
+    // deleting a routine DOES NOT delete the products in the routine
+    // the products still exist in the db as they are separate from routines
+    public void deleteRoutine(String deleteRoutineId) throws FileNotFoundException {
+        if (!routinesRepository.existsByRoutineId(deleteRoutineId)) {
+            throw new FileNotFoundException("Routine does not exist");
+        }
+
+        RoutineEntity toDelete = routinesRepository.getOneByRoutineId(deleteRoutineId);
+        routinesRepository.delete(toDelete);
+    }
+
+    // products still EXIST in db they ARE NOT DELETED FROM THE DB EVEN IF REMOVED FROM A ROUTINE
+    public RoutineDto removeProductsFromRoutine(ProductsInRoutineRequestModel toRemove) throws FileNotFoundException {
+        String routineId = toRemove.getRoutineId();
+        List<String> toRemoveProducts = toRemove.getProductIds();
+
+        if (!routinesRepository.existsByRoutineId(routineId)) {
+            throw new FileNotFoundException("Routine does not exist");
+        }
+
+        RoutineEntity editRoutine = routinesRepository.getOneByRoutineId(routineId);
+
+        if (editRoutine.getProducts().size() == toRemoveProducts.size()) { // this is basically same thing as deleting a routine
+            routinesRepository.delete(editRoutine);
+            return null;
+        }
+
+        // otherwise, the modified routine will still contain at least 1 product, so we have to save the routine after
+        // removing the products
+
+        // if a product does not exist, we do not throw an exception as the user intends to remove products from the routine
+        for (String productId : toRemoveProducts) {
+            if (productsRepository.existsByProductId(productId)) {
+                ProductEntity product = productsRepository.findByProductId(productId); // we dont need to get ref to db object
+                editRoutine.removeProductFromRoutine(product);
+            }
+        }
+
+        routinesRepository.save(editRoutine);
+        RoutineDto returnDto = mapper.strictMapper().map(editRoutine, RoutineDto.class);
+        return returnDto;
+    }
+
+    public RoutineDto addProductsToRoutine(ProductsInRoutineRequestModel toAdd) throws FileNotFoundException {
+        String routineId = toAdd.getRoutineId();
+        List<String> toAddProducts = toAdd.getProductIds();
+
+        if (!routinesRepository.existsByRoutineId(routineId)) {
+            throw new FileNotFoundException("Routine does not exist");
+        }
+
+        RoutineEntity editRoutine = routinesRepository.getOneByRoutineId(routineId);
+
+        for (String productId: toAddProducts) {
+            if (!productsRepository.existsByProductId(productId)) {
+                throw new FileNotFoundException("Product does not exist");
+            }
+            ProductEntity product = productsRepository.findByProductId(productId); // not ref to db object
+            editRoutine.addProductToRoutine(product);
+        }
+
+        // at this point, all products added exist so we can safely save the updated routine entity
+        routinesRepository.save(editRoutine);
+        RoutineDto returnDto = mapper.strictMapper().map(editRoutine, RoutineDto.class);
+        return returnDto;
+    }
 }

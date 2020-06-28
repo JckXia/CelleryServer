@@ -4,6 +4,8 @@ import com.cellery.api.backend.shared.ProductDto;
 import com.cellery.api.backend.shared.Util.MapperUtil;
 import com.cellery.api.backend.ui.data.ProductEntity;
 import com.cellery.api.backend.ui.data.ProductsRepository;
+import com.cellery.api.backend.ui.data.RoutineEntity;
+import com.cellery.api.backend.ui.data.RoutinesRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,11 +18,13 @@ import java.util.UUID;
 public class ProductsService {
 
     private ProductsRepository productsRepository;
+    private RoutinesRepository routinesRepository;
     private MapperUtil mapper;
 
     @Autowired
-    public ProductsService(ProductsRepository pr, MapperUtil mapper) {
-        this.productsRepository = pr;
+    public ProductsService(ProductsRepository productsRepository, RoutinesRepository routinesRepository, MapperUtil mapper) {
+        this.productsRepository = productsRepository;
+        this.routinesRepository = routinesRepository;
         this.mapper = mapper;
     }
 
@@ -58,7 +62,7 @@ public class ProductsService {
     }
 
     // Deletes a product by the productId
-    public void deleteProduct(String deleteProductId) throws FileNotFoundException, UnsupportedOperationException {
+    public void deleteProduct(String deleteProductId) throws FileNotFoundException {
         if (!productsRepository.existsByProductId(deleteProductId)) {
             throw new FileNotFoundException("Product does not exist");
         }
@@ -68,6 +72,20 @@ public class ProductsService {
         // The product will be deleted regardless if it is in a routine or not. On the frontend, the user
         // will be prompted about the effects of deleting the product if it is in a routine (it will disappear from
         // routines it is in)
+
+        // check if the routine(s) that have this product have only 1 product, so deleting the product
+        // will delete that routine too
+        List<RoutineEntity> inRoutines = productEntity.getRoutines();
+        for (RoutineEntity routine: inRoutines) {
+            if (routine.getProducts().size() == 1) {
+                routinesRepository.delete(routine); // goodbye
+            } else {
+                // remove it from the routine
+                routine.removeProductFromRoutine(productEntity); // if we do not, the product still exists in db even after line 92 since routine is the parent
+                routinesRepository.save(routine);
+            }
+        }
+
         productsRepository.delete(productEntity);
     }
 
@@ -82,7 +100,7 @@ public class ProductsService {
             try {
                 deleteProduct(id);
                 ++numDeleted;
-            } catch (FileNotFoundException | UnsupportedOperationException e) {
+            } catch (FileNotFoundException e) {
                 /* I know! This is strange and definitely not the cleanest way to deal with our case */
             }
         }

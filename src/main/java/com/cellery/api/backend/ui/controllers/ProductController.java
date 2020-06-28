@@ -75,8 +75,6 @@ public class ProductController {
 
         } catch (FileNotFoundException e) { // product does not exist
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        } catch (UnsupportedOperationException e) { // product belongs to one or both routines
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
 
