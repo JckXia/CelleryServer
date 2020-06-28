@@ -5,7 +5,6 @@ import com.cellery.api.backend.shared.UserDto;
 import com.cellery.api.backend.shared.Util.JwtUtil;
 import com.cellery.api.backend.shared.Util.MapperUtil;
 import com.cellery.api.backend.ui.model.request.CreateRoutineRequestModel;
-import com.cellery.api.backend.ui.model.request.DeleteRoutineRequestModel;
 import com.cellery.api.backend.ui.model.request.ProductsInRoutineRequestModel;
 import com.cellery.api.backend.ui.model.response.RoutineRespModel;
 import com.cellery.api.backend.ui.service.RoutinesService;
@@ -56,13 +55,8 @@ public class RoutineController {
         return userDto;
     }
 
+    // get all routines
     @GetMapping
-    public String test() {
-        return "This is /routines endpoint";
-    }
-    // TODO: delete routine (all products will detach from routine), edit routine
-
-    @GetMapping(path="/get")
     public ResponseEntity<List<RoutineRespModel>> getRoutines(@RequestHeader(value = "${authentication.authorization}") String auth) {
 
         if (emptyStr(auth)) { // if token is empty/null
@@ -86,8 +80,8 @@ public class RoutineController {
         } // jwt related exceptions are caught by the web filter
     }
 
-
-    @PostMapping(path="/create")
+    // create routine
+    @PostMapping
     public ResponseEntity<RoutineRespModel> createRoutine(@RequestHeader(value = "${authentication.authorization}") String auth,
                                 @Valid @RequestBody CreateRoutineRequestModel createRoutine) {
 
@@ -117,10 +111,11 @@ public class RoutineController {
         }
     }
 
-    @DeleteMapping(path = "/delete")
-    public ResponseEntity<String> deleteRoutine(@Valid @RequestBody DeleteRoutineRequestModel deleteRoutine) {
+    // delete routine
+    @DeleteMapping(path = "/users/delete/{id}")
+    public ResponseEntity<String> deleteRoutine(@PathVariable String routineId) {
         try {
-            routinesService.deleteRoutine(deleteRoutine.getRoutineId());
+            routinesService.deleteRoutine(routineId);
             return ResponseEntity.status(HttpStatus.OK).body("Successfully deleted routine");
 
         } catch (FileNotFoundException e) {

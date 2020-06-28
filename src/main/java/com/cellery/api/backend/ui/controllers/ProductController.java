@@ -5,45 +5,47 @@ import com.cellery.api.backend.shared.Util.MapperUtil;
 import com.cellery.api.backend.ui.model.request.CreateProductRequestModel;
 import com.cellery.api.backend.ui.model.request.DeleteProductRequestModel;
 import com.cellery.api.backend.ui.model.request.EditProductRequestModel;
-import com.cellery.api.backend.ui.model.request.ProductRequestModel;
 import com.cellery.api.backend.ui.model.response.ProductRespModel;
 import com.cellery.api.backend.ui.service.ProductsService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 
 @RestController
 @RequestMapping("/products")
 public class ProductController {
 
+    private Environment env;
     private ProductsService productsService;
     private MapperUtil modelMapper;
 
     @Autowired
-    ProductController(ProductsService ps, MapperUtil mapper) {
+    ProductController(Environment env, ProductsService ps, MapperUtil mapper) {
+        this.env = env;
         this.productsService = ps;
         this.modelMapper = mapper;
     }
 
+    // get all products IN PROGRESS
     @GetMapping
-    public String test() {
-        return "You have poked the /products endpoint";
+    public ResponseEntity<String> getProducts(@RequestHeader(value = "${authentication.authorization}") String auth) {
+        return ResponseEntity.status(HttpStatus.OK).body("");
     }
 
-    @GetMapping(path="/get")
-    public ResponseEntity<ProductRespModel> getProduct(@Valid @RequestBody ProductRequestModel productReq) {
+    // get product by id
+    @GetMapping(path="/{id}")
+    public ResponseEntity<ProductRespModel> getProduct(@PathVariable String productId) {
 
         try {
-            ProductDto returnDto = productsService.getProduct(productReq.getProductId());
+            ProductDto returnDto = productsService.getProduct(productId);
 
             ProductRespModel returnVal = new ModelMapper().map(returnDto, ProductRespModel.class);
             return ResponseEntity.status(HttpStatus.OK).body(returnVal);
@@ -53,7 +55,8 @@ public class ProductController {
         }
     }
 
-    @PostMapping(path="/create")
+    // create product
+    @PostMapping
     public ResponseEntity<ProductRespModel> createProduct(@Valid @RequestBody CreateProductRequestModel product) {
 
         ModelMapper mapper = modelMapper.strictMapper();
@@ -65,11 +68,11 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(returnVal);
     }
 
-    @DeleteMapping(path="/delete")
-    public ResponseEntity<String> deleteProductById(@Valid @RequestBody DeleteProductRequestModel productId) {
+    // delete product by id
+    @DeleteMapping(path="/{id}")
+    public ResponseEntity<String> deleteProductById(@PathVariable String productId) {
         try {
-            String id = productId.getProductId();
-            productsService.deleteProduct(id);
+            productsService.deleteProduct(productId);
 
             return ResponseEntity.status(HttpStatus.OK).body("Successfully deleted product.");
 
@@ -78,8 +81,9 @@ public class ProductController {
         }
     }
 
+    // delete a list of products
     @DeleteMapping(path = "/batch-delete")
-    public ResponseEntity<Integer> deleteProductsById(@Valid @RequestBody ArrayList<DeleteProductRequestModel> productsToDelete) {
+    public ResponseEntity<Integer> deleteProductsById(@Valid @RequestBody List<DeleteProductRequestModel> productsToDelete) {
         // map to a list of productIds
         List<String> productIds = productsToDelete.stream().map(product -> product.getProductId()).collect(Collectors.toList());
 
