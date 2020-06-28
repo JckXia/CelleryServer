@@ -4,7 +4,7 @@ import com.cellery.api.backend.shared.RoutineDto;
 import com.cellery.api.backend.shared.UserDto;
 import com.cellery.api.backend.shared.Util.JwtUtil;
 import com.cellery.api.backend.shared.Util.MapperUtil;
-import com.cellery.api.backend.ui.model.request.CreateRoutineRequestModel;
+import com.cellery.api.backend.shared.Util.Utils;
 import com.cellery.api.backend.ui.model.request.ProductsInRoutineRequestModel;
 import com.cellery.api.backend.ui.model.response.RoutineRespModel;
 import com.cellery.api.backend.ui.service.RoutinesService;
@@ -31,18 +31,16 @@ public class RoutineController {
     private UsersService usersService;
     private MapperUtil mapper;
     private JwtUtil jwtUtil;
+    private Utils utils;
 
     @Autowired
-    RoutineController(Environment env, RoutinesService rs, UsersService us, MapperUtil mapper, JwtUtil jwtUtil) {
+    RoutineController(Environment env, RoutinesService rs, UsersService us, MapperUtil mapper, JwtUtil jwtUtil, Utils utils) {
         this.env = env;
         routinesService = rs;
         usersService = us;
         this.mapper = mapper;
         this.jwtUtil = jwtUtil;
-    }
-
-    private Boolean emptyStr(String str) {
-        return str == null || str.isEmpty();
+        this.utils = utils;
     }
 
     private Type routineRespModelListType() {
@@ -59,7 +57,7 @@ public class RoutineController {
     @GetMapping
     public ResponseEntity<List<RoutineRespModel>> getRoutines(@RequestHeader(value = "${authentication.authorization}") String auth) {
 
-        if (emptyStr(auth)) { // if token is empty/null
+        if (utils.emptyStr(auth)) { // if token is empty/null
             return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(null);
         }
 
@@ -83,9 +81,9 @@ public class RoutineController {
     // create routine
     @PostMapping
     public ResponseEntity<RoutineRespModel> createRoutine(@RequestHeader(value = "${authentication.authorization}") String auth,
-                                @Valid @RequestBody CreateRoutineRequestModel createRoutine) {
+                                @Valid @RequestBody ProductsInRoutineRequestModel createRoutine) {
 
-        if (emptyStr(auth) || createRoutine.getProducts().isEmpty()) {
+        if (utils.emptyStr(auth) || createRoutine.getProductIds().isEmpty()) {
             return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(null);
         }
 
@@ -98,7 +96,7 @@ public class RoutineController {
             }
 
             // create routine and add it to user
-            RoutineDto createdDto = routinesService.createRoutine(jwtUtil.getEmailFromToken(auth), createRoutine.getProducts());
+            RoutineDto createdDto = routinesService.createRoutine(jwtUtil.getEmailFromToken(auth), createRoutine.getProductIds());
 
             RoutineRespModel returnVal = mapper.strictMapper().map(createdDto, RoutineRespModel.class);
             return ResponseEntity.status(HttpStatus.CREATED).body(returnVal);
@@ -111,11 +109,11 @@ public class RoutineController {
         }
     }
 
-    // delete routine
-    @DeleteMapping(path = "/users/delete/{id}")
-    public ResponseEntity<String> deleteRoutine(@PathVariable String routineId) {
+    // delete routine by id
+    @DeleteMapping(path = "/{id}")
+    public ResponseEntity<String> deleteRoutine(@PathVariable String id) {
         try {
-            routinesService.deleteRoutine(routineId);
+            routinesService.deleteRoutine(id);
             return ResponseEntity.status(HttpStatus.OK).body("Successfully deleted routine");
 
         } catch (FileNotFoundException e) {
@@ -123,10 +121,12 @@ public class RoutineController {
         }
     }
 
-    @PatchMapping(path = "/remove-products")
-    public ResponseEntity<RoutineRespModel> removeProductsFromRoutine(@Valid @RequestBody ProductsInRoutineRequestModel productsToRemove) {
+    // remove products from routine
+    @PatchMapping(path = "/{id}")
+    public ResponseEntity<RoutineRespModel> removeProductsFromRoutine(@PathVariable String id,
+                                                                      @Valid @RequestBody ProductsInRoutineRequestModel productsToRemove) {
         try {
-            RoutineDto returnDto = routinesService.removeProductsFromRoutine(productsToRemove);
+            RoutineDto returnDto = routinesService.removeProductsFromRoutine(id, productsToRemove.getProductIds());
 
             if (returnDto != null) {
                 RoutineRespModel returnVal = mapper.strictMapper().map(returnDto, RoutineRespModel.class);
@@ -140,10 +140,12 @@ public class RoutineController {
         }
     }
 
-    @PatchMapping(path = "/add-products")
-    public ResponseEntity<RoutineRespModel> addProductsToRoutine(@Valid @RequestBody ProductsInRoutineRequestModel productsToAdd) {
+    // add products to routine
+    @PatchMapping(path = "/{id}")
+    public ResponseEntity<RoutineRespModel> addProductsToRoutine(@PathVariable String id,
+                                                                 @Valid @RequestBody ProductsInRoutineRequestModel productsToAdd) {
         try {
-            RoutineDto returnDto = routinesService.addProductsToRoutine(productsToAdd);
+            RoutineDto returnDto = routinesService.addProductsToRoutine(id, productsToAdd.getProductIds());
 
             RoutineRespModel returnVal = mapper.strictMapper().map(returnDto, RoutineRespModel.class);
             return ResponseEntity.status(HttpStatus.OK).body(returnVal);

@@ -33,6 +33,9 @@ public class UserEntity implements Serializable {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<RoutineEntity> routines = new ArrayList<>();
 
+    @OneToMany(mappedBy = "productUser", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ProductEntity> userProducts = new ArrayList<>();
+
     public List<RoutineEntity> getRoutines() {
         return routines;
     }
@@ -89,4 +92,11 @@ public class UserEntity implements Serializable {
         this.firstName = firstName;
     }
 
+    public List<ProductEntity> getUserProducts() {
+        return userProducts;
+    }
+
+    public void setUserProducts(List<ProductEntity> userProducts) {
+        this.userProducts = userProducts;
+    }
 }

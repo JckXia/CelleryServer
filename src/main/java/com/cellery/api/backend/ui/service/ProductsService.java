@@ -2,15 +2,13 @@ package com.cellery.api.backend.ui.service;
 
 import com.cellery.api.backend.shared.ProductDto;
 import com.cellery.api.backend.shared.Util.MapperUtil;
-import com.cellery.api.backend.ui.data.ProductEntity;
-import com.cellery.api.backend.ui.data.ProductsRepository;
-import com.cellery.api.backend.ui.data.RoutineEntity;
-import com.cellery.api.backend.ui.data.RoutinesRepository;
-import org.modelmapper.ModelMapper;
+import com.cellery.api.backend.ui.data.*;
+import com.googlecode.gentyref.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,12 +17,15 @@ public class ProductsService {
 
     private ProductsRepository productsRepository;
     private RoutinesRepository routinesRepository;
+    private UsersRepository usersRepository;
     private MapperUtil mapper;
 
     @Autowired
-    public ProductsService(ProductsRepository productsRepository, RoutinesRepository routinesRepository, MapperUtil mapper) {
+    public ProductsService(ProductsRepository productsRepository, RoutinesRepository routinesRepository,
+                           UsersRepository usersRepository, MapperUtil mapper) {
         this.productsRepository = productsRepository;
         this.routinesRepository = routinesRepository;
+        this.usersRepository = usersRepository;
         this.mapper = mapper;
     }
 
@@ -38,6 +39,15 @@ public class ProductsService {
         return lilMap.map(src, ProductDto.class);
     }*/
 
+    private Type productDtoList() {
+        return new TypeToken<List<ProductDto>>() {}.getType();
+    }
+
+    public List<ProductDto> getProducts(String email) {
+        List<ProductEntity> productEntities = usersRepository.findByEmail(email).getUserProducts();
+        return mapper.strictMapper().map(productEntities, productDtoList());
+    }
+
     public ProductDto getProduct(String wantedProductId) throws FileNotFoundException {
         if (!productsRepository.existsByProductId(wantedProductId)) {
             throw new FileNotFoundException("Product does not exist");
@@ -49,12 +59,13 @@ public class ProductsService {
         return returnDto;
     }
 
-    public ProductDto createProduct(ProductDto newProduct) {
-        newProduct.setProductId((UUID.randomUUID().toString()));
+    public ProductDto createProduct(String email, ProductDto newProduct) {
+        newProduct.setProductId(UUID.randomUUID().toString());
+        ProductEntity productEntity = mapper.strictMapper().map(newProduct, ProductEntity.class);
 
-        ModelMapper modelMapper = mapper.strictMapper();
-        ProductEntity productEntity = modelMapper.map(newProduct, ProductEntity.class);
-
+        // get user that product belongs to
+        UserEntity productUser = usersRepository.getOneByEmail(email);
+        productEntity.setProductUser(productUser);
         productsRepository.save(productEntity); // save to database
 
         ProductDto returnDto = mapper.strictMapper().map(productEntity, ProductDto.class);

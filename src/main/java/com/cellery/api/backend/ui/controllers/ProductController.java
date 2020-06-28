@@ -1,21 +1,28 @@
 package com.cellery.api.backend.ui.controllers;
 
 import com.cellery.api.backend.shared.ProductDto;
+import com.cellery.api.backend.shared.UserDto;
+import com.cellery.api.backend.shared.Util.JwtUtil;
 import com.cellery.api.backend.shared.Util.MapperUtil;
+import com.cellery.api.backend.shared.Util.Utils;
 import com.cellery.api.backend.ui.model.request.CreateProductRequestModel;
-import com.cellery.api.backend.ui.model.request.DeleteProductRequestModel;
 import com.cellery.api.backend.ui.model.request.EditProductRequestModel;
+import com.cellery.api.backend.ui.model.request.ProductRequestModel;
 import com.cellery.api.backend.ui.model.response.ProductRespModel;
 import com.cellery.api.backend.ui.service.ProductsService;
+import com.cellery.api.backend.ui.service.UsersService;
+import com.googlecode.gentyref.TypeToken;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.io.FileNotFoundException;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,27 +32,62 @@ public class ProductController {
 
     private Environment env;
     private ProductsService productsService;
+    private UsersService usersService;
     private MapperUtil modelMapper;
+    private JwtUtil jwtUtil;
+    private Utils utils;
 
     @Autowired
-    ProductController(Environment env, ProductsService ps, MapperUtil mapper) {
+    ProductController(Environment env, ProductsService ps, UsersService usersService, MapperUtil mapper, JwtUtil jwtUtil, Utils utils) {
         this.env = env;
         this.productsService = ps;
+        this.usersService = usersService;
         this.modelMapper = mapper;
+        this.jwtUtil = jwtUtil;
+        this.utils = utils;
     }
 
-    // get all products IN PROGRESS
+    private Type productRespModelListType() {
+        return new TypeToken<List<ProductRespModel>>(){}.getType();
+    }
+
+    private UserDto getUserDto(String auth) throws UsernameNotFoundException {
+        String email = jwtUtil.getEmailFromToken(auth);
+        UserDto userDto = usersService.getUserDetailsByEmail(email);
+        return userDto;
+    }
+
+    // get all products
     @GetMapping
-    public ResponseEntity<String> getProducts(@RequestHeader(value = "${authentication.authorization}") String auth) {
-        return ResponseEntity.status(HttpStatus.OK).body("");
+    public ResponseEntity<List<ProductRespModel>> getProducts(@RequestHeader(value = "${authentication.authorization}") String auth) {
+        if (utils.emptyStr(auth)) { // if token is empty/null
+            return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(null);
+        }
+
+        try {
+            auth = auth.replace(env.getProperty("authentication.bearer"), "");
+            UserDto userDto = getUserDto(auth);
+
+            if (!jwtUtil.validateToken(auth, userDto)) {
+                return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(null);
+            }
+
+            List<ProductDto> productsList = productsService.getProducts(jwtUtil.getEmailFromToken(auth));
+
+            List<ProductRespModel> returnVal = modelMapper.strictMapper().map(productsList, productRespModelListType());
+            return ResponseEntity.status(HttpStatus.OK).body(returnVal);
+
+        } catch (UsernameNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } // jwt related exceptions are caught by the web filter
     }
 
     // get product by id
     @GetMapping(path="/{id}")
-    public ResponseEntity<ProductRespModel> getProduct(@PathVariable String productId) {
+    public ResponseEntity<ProductRespModel> getProduct(@PathVariable String id) {
 
         try {
-            ProductDto returnDto = productsService.getProduct(productId);
+            ProductDto returnDto = productsService.getProduct(id);
 
             ProductRespModel returnVal = new ModelMapper().map(returnDto, ProductRespModel.class);
             return ResponseEntity.status(HttpStatus.OK).body(returnVal);
@@ -57,22 +99,39 @@ public class ProductController {
 
     // create product
     @PostMapping
-    public ResponseEntity<ProductRespModel> createProduct(@Valid @RequestBody CreateProductRequestModel product) {
+    public ResponseEntity<ProductRespModel> createProduct(@RequestHeader(value = "${authentication.authorization}") String auth,
+                                                          @Valid @RequestBody CreateProductRequestModel product) {
+        if (utils.emptyStr(auth) || (product.getDescription().isEmpty() && product.getName().isEmpty())) {
+            return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(null);
+        }
 
-        ModelMapper mapper = modelMapper.strictMapper();
+        try {
+            auth = auth.replace(env.getProperty("authentication.bearer"), "");
+            UserDto userDto = getUserDto(auth);
 
-        ProductDto productDto = mapper.map(product, ProductDto.class);
-        ProductDto returnDto = productsService.createProduct(productDto);
+            if (!jwtUtil.validateToken(auth, userDto)) {
+                return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(null);
+            }
 
-        ProductRespModel returnVal = mapper.map(returnDto, ProductRespModel.class);
-        return ResponseEntity.status(HttpStatus.CREATED).body(returnVal);
+            ModelMapper mapper = modelMapper.strictMapper();
+
+            ProductDto productDto = mapper.map(product, ProductDto.class);
+            ProductDto returnDto = productsService.createProduct(jwtUtil.getEmailFromToken(auth), productDto); // create product and add to user
+
+            ProductRespModel returnVal = mapper.map(returnDto, ProductRespModel.class);
+            return ResponseEntity.status(HttpStatus.CREATED).body(returnVal);
+
+        } catch (RuntimeException e) {
+            // user has valid jwt but email does not match the valid user
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
     }
 
     // delete product by id
     @DeleteMapping(path="/{id}")
-    public ResponseEntity<String> deleteProductById(@PathVariable String productId) {
+    public ResponseEntity<String> deleteProductById(@PathVariable String id) {
         try {
-            productsService.deleteProduct(productId);
+            productsService.deleteProduct(id);
 
             return ResponseEntity.status(HttpStatus.OK).body("Successfully deleted product.");
 
@@ -83,7 +142,7 @@ public class ProductController {
 
     // delete a list of products
     @DeleteMapping(path = "/batch-delete")
-    public ResponseEntity<Integer> deleteProductsById(@Valid @RequestBody List<DeleteProductRequestModel> productsToDelete) {
+    public ResponseEntity<Integer> deleteProductsById(@Valid @RequestBody List<ProductRequestModel> productsToDelete) {
         // map to a list of productIds
         List<String> productIds = productsToDelete.stream().map(product -> product.getProductId()).collect(Collectors.toList());
 
@@ -96,16 +155,15 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.OK).body(numDeleted);
     }
 
-    @PatchMapping(path="/edit")
-    public ResponseEntity<ProductRespModel> editProductInfo(@Valid @RequestBody EditProductRequestModel productInfo) {
+    @PatchMapping(path="/{id}")
+    public ResponseEntity<ProductRespModel> editProductInfo(@PathVariable String id, @Valid @RequestBody EditProductRequestModel productInfo) {
         try {
-            ModelMapper mapper = modelMapper.strictMapper();
+            ProductDto productDto = modelMapper.strictMapper().map(productInfo, ProductDto.class);
+            productDto.setProductId(id);
 
-            ProductDto productDto = mapper.map(productInfo, ProductDto.class);
-            ProductDto returnDto = productsService.editProduct(productDto);
+            ProductDto returnDto = productsService.editProduct(productDto); // edit product details
 
-            ProductRespModel returnVal = mapper.map(returnDto, ProductRespModel.class);
-
+            ProductRespModel returnVal = modelMapper.strictMapper().map(returnDto, ProductRespModel.class);
             return ResponseEntity.status(HttpStatus.OK).body(returnVal);
 
         } catch (FileNotFoundException e) {

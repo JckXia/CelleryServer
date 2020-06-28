@@ -28,6 +28,10 @@ public class ProductEntity implements Serializable {
     @ManyToMany(mappedBy = "products")
     private List<RoutineEntity> routines = new ArrayList<>();
 
+    @ManyToOne(fetch = FetchType.LAZY) // owning side of relationship
+    @JoinColumn(name = "user_fk")
+    private UserEntity productUser;
+
     public String getProductId() {
         return productId;
     }
@@ -62,5 +66,13 @@ public class ProductEntity implements Serializable {
 
     public void addRoutine(RoutineEntity routine) {
         this.routines.add(routine);
+    }
+
+    public UserEntity getProductUser() {
+        return productUser;
+    }
+
+    public void setProductUser(UserEntity productUser) {
+        this.productUser = productUser;
     }
 }

@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS `routines` (
 
 CREATE TABLE IF NOT EXISTS `products` (
   `id` int PRIMARY KEY AUTO_INCREMENT,
+  `user_fk` int,
   `product_id` varchar(255),
   `product_name` varchar(255),
   `product_description` varchar(255)
@@ -61,6 +62,8 @@ CREATE TABLE IF NOT EXISTS `images` (
 
 ALTER TABLE `routines`  ADD CONSTRAINT fk_routines_user FOREIGN KEY (`user_fk`) REFERENCES `users` (id);
 ALTER TABLE `routines` ADD CONSTRAINT fk_routines_log FOREIGN KEY (`log_fk`) REFERENCES `logs` (id);
+
+ALTER TABLE `products` ADD CONSTRAINT fk_products_user FOREIGN KEY (`user_fk`) REFERENCES `users`(id);
 
 ALTER TABLE `routine_products` ADD CONSTRAINT fk_routines_routine_products FOREIGN KEY (`id_routine`) REFERENCES `routines`(id) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE `routine_products` ADD CONSTRAINT fk_products_routine_products FOREIGN KEY (`id_product`) REFERENCES `products`(id) ON DELETE CASCADE ON UPDATE CASCADE;

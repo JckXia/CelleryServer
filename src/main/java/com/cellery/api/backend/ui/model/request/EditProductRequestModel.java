@@ -1,6 +1,6 @@
 package com.cellery.api.backend.ui.model.request;
 
-public class EditProductRequestModel extends ProductRequestModel{
+public class EditProductRequestModel {
 
     private String name;
     private String description;

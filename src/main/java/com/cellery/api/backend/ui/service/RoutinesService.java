@@ -35,8 +35,7 @@ public class RoutinesService {
     }
 
     private Type routineDtoListType() {
-        return new TypeToken<List<RoutineDto>>() {
-        }.getType();
+        return new TypeToken<List<RoutineDto>>() {}.getType();
     }
 
     public List<RoutineDto> getRoutines(String email) {
@@ -85,9 +84,7 @@ public class RoutinesService {
     }
 
     // products still EXIST in db they ARE NOT DELETED FROM THE DB EVEN IF REMOVED FROM A ROUTINE
-    public RoutineDto removeProductsFromRoutine(ProductsInRoutineRequestModel toRemove) throws FileNotFoundException {
-        String routineId = toRemove.getRoutineId();
-        List<String> toRemoveProducts = toRemove.getProductIds();
+    public RoutineDto removeProductsFromRoutine(String routineId, List<String> toRemove) throws FileNotFoundException {
 
         if (!routinesRepository.existsByRoutineId(routineId)) {
             throw new FileNotFoundException("Routine does not exist");
@@ -95,7 +92,7 @@ public class RoutinesService {
 
         RoutineEntity editRoutine = routinesRepository.getOneByRoutineId(routineId);
 
-        if (editRoutine.getProducts().size() == toRemoveProducts.size()) { // this is basically same thing as deleting a routine
+        if (editRoutine.getProducts().size() == toRemove.size()) { // this is basically same thing as deleting a routine
             routinesRepository.delete(editRoutine);
             return null;
         }
@@ -104,7 +101,7 @@ public class RoutinesService {
         // removing the products
 
         // if a product does not exist, we do not throw an exception as the user intends to remove products from the routine
-        for (String productId : toRemoveProducts) {
+        for (String productId : toRemove) {
             if (productsRepository.existsByProductId(productId)) {
                 ProductEntity product = productsRepository.findByProductId(productId); // we dont need to get ref to db object
                 editRoutine.removeProductFromRoutine(product);
@@ -116,17 +113,14 @@ public class RoutinesService {
         return returnDto;
     }
 
-    public RoutineDto addProductsToRoutine(ProductsInRoutineRequestModel toAdd) throws FileNotFoundException {
-        String routineId = toAdd.getRoutineId();
-        List<String> toAddProducts = toAdd.getProductIds();
-
+    public RoutineDto addProductsToRoutine(String routineId, List<String> toAdd) throws FileNotFoundException {
         if (!routinesRepository.existsByRoutineId(routineId)) {
             throw new FileNotFoundException("Routine does not exist");
         }
 
         RoutineEntity editRoutine = routinesRepository.getOneByRoutineId(routineId);
 
-        for (String productId: toAddProducts) {
+        for (String productId: toAdd) {
             if (!productsRepository.existsByProductId(productId)) {
                 throw new FileNotFoundException("Product does not exist");
             }
