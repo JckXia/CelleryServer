@@ -1,9 +1,9 @@
 package com.cellery.api.backend.ui.service;
 
 import com.cellery.api.backend.shared.RoutineDto;
+import com.cellery.api.backend.shared.Util.BelongsToUserUtil;
 import com.cellery.api.backend.shared.Util.MapperUtil;
 import com.cellery.api.backend.ui.data.*;
-import com.cellery.api.backend.ui.model.request.ProductsInRoutineRequestModel;
 import com.googlecode.gentyref.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,19 +24,22 @@ public class RoutinesService {
     private ProductsRepository productsRepository;
     private UsersRepository usersRepository;
     private MapperUtil mapper;
+    private BelongsToUserUtil userUtil;
 
     @Autowired
     public RoutinesService(RoutinesRepository routinesRepository, ProductsRepository productsRepository, UsersRepository usersRepository,
-                           MapperUtil mapper) {
+                           MapperUtil mapper, BelongsToUserUtil userUtil) {
         this.routinesRepository = routinesRepository;
         this.productsRepository = productsRepository;
         this.usersRepository = usersRepository;
         this.mapper = mapper;
+        this.userUtil = userUtil;
     }
 
     private Type routineDtoListType() {
         return new TypeToken<List<RoutineDto>>() {}.getType();
     }
+
 
     public List<RoutineDto> getRoutines(String email) {
         List<RoutineEntity> routines = usersRepository.findByEmail(email).getRoutines();
@@ -44,7 +47,10 @@ public class RoutinesService {
     }
 
     @Transactional // do in one db transaction
-    public RoutineDto createRoutine(String email, List<String> addProducts) throws RuntimeException {
+    public RoutineDto createRoutine(String email, List<String> addProducts) throws RuntimeException, FileNotFoundException {
+        // check if products belong to user
+        userUtil.productsBelongToUser(email, addProducts);
+
         RoutineEntity routineEntity = new RoutineEntity();
         routineEntity.setRoutineId(UUID.randomUUID().toString());
 
@@ -74,8 +80,8 @@ public class RoutinesService {
 
     // deleting a routine DOES NOT delete the products in the routine
     // the products still exist in the db as they are separate from routines
-    public void deleteRoutine(String deleteRoutineId) throws FileNotFoundException {
-        if (!routinesRepository.existsByRoutineId(deleteRoutineId)) {
+    public void deleteRoutine(String email, String deleteRoutineId) throws FileNotFoundException {
+        if (!routinesRepository.existsByRoutineId(deleteRoutineId) || !userUtil.routineBelongsToUser(email, deleteRoutineId)) {
             throw new FileNotFoundException("Routine does not exist");
         }
 
@@ -84,11 +90,13 @@ public class RoutinesService {
     }
 
     // products still EXIST in db they ARE NOT DELETED FROM THE DB EVEN IF REMOVED FROM A ROUTINE
-    public RoutineDto removeProductsFromRoutine(String routineId, List<String> toRemove) throws FileNotFoundException {
+    public RoutineDto removeProductsFromRoutine(String email, String routineId, List<String> toRemove) throws FileNotFoundException {
 
-        if (!routinesRepository.existsByRoutineId(routineId)) {
+        if (!routinesRepository.existsByRoutineId(routineId) || !userUtil.routineBelongsToUser(email, routineId)) {
             throw new FileNotFoundException("Routine does not exist");
         }
+
+        userUtil.productsBelongToUser(email, toRemove); // check if user actually has these products
 
         RoutineEntity editRoutine = routinesRepository.getOneByRoutineId(routineId);
 
@@ -113,10 +121,12 @@ public class RoutinesService {
         return returnDto;
     }
 
-    public RoutineDto addProductsToRoutine(String routineId, List<String> toAdd) throws FileNotFoundException {
-        if (!routinesRepository.existsByRoutineId(routineId)) {
+    public RoutineDto addProductsToRoutine(String email, String routineId, List<String> toAdd) throws FileNotFoundException {
+        if (!routinesRepository.existsByRoutineId(routineId) || !userUtil.routineBelongsToUser(email, routineId)) {
             throw new FileNotFoundException("Routine does not exist");
         }
+
+        userUtil.productsBelongToUser(email, toAdd); // check if user actually has these products
 
         RoutineEntity editRoutine = routinesRepository.getOneByRoutineId(routineId);
 

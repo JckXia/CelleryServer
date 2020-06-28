@@ -4,7 +4,6 @@ import com.cellery.api.backend.shared.ProductDto;
 import com.cellery.api.backend.shared.UserDto;
 import com.cellery.api.backend.shared.Util.JwtUtil;
 import com.cellery.api.backend.shared.Util.MapperUtil;
-import com.cellery.api.backend.shared.Util.Utils;
 import com.cellery.api.backend.ui.model.request.CreateProductRequestModel;
 import com.cellery.api.backend.ui.model.request.EditProductRequestModel;
 import com.cellery.api.backend.ui.model.request.ProductRequestModel;
@@ -12,6 +11,10 @@ import com.cellery.api.backend.ui.model.response.ProductRespModel;
 import com.cellery.api.backend.ui.service.ProductsService;
 import com.cellery.api.backend.ui.service.UsersService;
 import com.googlecode.gentyref.TypeToken;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -21,6 +24,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -78,14 +82,21 @@ public class ProductController {
 
     // get product by id
     @GetMapping(path="/{id}")
-    public ResponseEntity<ProductRespModel> getProduct(@PathVariable String id) {
+    public ResponseEntity<ProductRespModel> getProduct(@PathVariable String id, @RequestHeader(value = "${authentication.authorization}") String auth) {
         try {
-            ProductDto returnDto = productsService.getProduct(id);
+            auth = auth.replace(env.getProperty("authentication.bearer"), "");
+            UserDto userDto = getUserDto(auth);
+
+            if (!jwtUtil.validateToken(auth, userDto)) {
+                return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(null);
+            }
+
+            ProductDto returnDto = productsService.getProduct(jwtUtil.getEmailFromToken(auth), id);
 
             ProductRespModel returnVal = new ModelMapper().map(returnDto, ProductRespModel.class);
             return ResponseEntity.status(HttpStatus.OK).body(returnVal);
 
-        } catch (FileNotFoundException e) {
+        } catch (UsernameNotFoundException | FileNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
@@ -118,9 +129,16 @@ public class ProductController {
 
     // delete product by id
     @DeleteMapping(path="/{id}")
-    public ResponseEntity<String> deleteProductById(@PathVariable String id) {
+    public ResponseEntity<String> deleteProductById(@PathVariable String id, @RequestHeader(value = "${authentication.authorization}") String auth) {
         try {
-            productsService.deleteProduct(id);
+            auth = auth.replace(env.getProperty("authentication.bearer"), "");
+            UserDto userDto = getUserDto(auth);
+
+            if (!jwtUtil.validateToken(auth, userDto)) {
+                return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(null);
+            }
+
+            productsService.deleteProduct(jwtUtil.getEmailFromToken(auth), id);
 
             return ResponseEntity.status(HttpStatus.OK).body("Successfully deleted product.");
 
@@ -131,26 +149,48 @@ public class ProductController {
 
     // delete a list of products
     @DeleteMapping(path = "/batch-delete")
-    public ResponseEntity<Integer> deleteProductsById(@Valid @RequestBody List<ProductRequestModel> productsToDelete) {
-        // map to a list of productIds
-        List<String> productIds = productsToDelete.stream().map(product -> product.getProductId()).collect(Collectors.toList());
+    public ResponseEntity<Integer> deleteProductsById(@Valid @RequestBody List<ProductRequestModel> productsToDelete,
+                                                      @RequestHeader(value = "${authentication.authorization}") String auth) {
+        try {
+            auth = auth.replace(env.getProperty("authentication.bearer"), "");
+            UserDto userDto = getUserDto(auth);
 
-        Integer numDeleted = productsService.deleteProducts(productIds);
+            if (!jwtUtil.validateToken(auth, userDto)) {
+                return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(null);
+            }
+
+            // map to a list of productIds
+            List<String> productIds = productsToDelete.stream().map(product -> product.getProductId()).collect(Collectors.toList());
+
+            Integer numDeleted = productsService.deleteProducts(jwtUtil.getEmailFromToken(auth), productIds);
 
         /* The frontend can check if the list size request is equal to the number deleted
             If not (and the number deleted will be less than the list size request), products either do not
             exist or they are still part of (a) routine(s).
          */
-        return ResponseEntity.status(HttpStatus.OK).body(numDeleted);
+            return ResponseEntity.status(HttpStatus.OK).body(numDeleted);
+
+        } catch (FileNotFoundException e) {
+            // when a product to be deleted is not owned by the user
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
     }
 
     @PatchMapping(path="/{id}")
-    public ResponseEntity<ProductRespModel> editProductInfo(@PathVariable String id, @Valid @RequestBody EditProductRequestModel productInfo) {
+    public ResponseEntity<ProductRespModel> editProductInfo(@PathVariable String id, @Valid @RequestBody EditProductRequestModel productInfo,
+                                                            @RequestHeader(value = "${authentication.authorization}") String auth) {
         try {
+            auth = auth.replace(env.getProperty("authentication.bearer"), "");
+            UserDto userDto = getUserDto(auth);
+
+            if (!jwtUtil.validateToken(auth, userDto)) {
+                return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(null);
+            }
+
             ProductDto productDto = modelMapper.strictMapper().map(productInfo, ProductDto.class);
             productDto.setProductId(id);
 
-            ProductDto returnDto = productsService.editProduct(productDto); // edit product details
+            ProductDto returnDto = productsService.editProduct(jwtUtil.getEmailFromToken(auth), productDto); // edit product details
 
             ProductRespModel returnVal = modelMapper.strictMapper().map(returnDto, ProductRespModel.class);
             return ResponseEntity.status(HttpStatus.OK).body(returnVal);

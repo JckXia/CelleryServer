@@ -9,8 +9,4 @@ public class Utils {
     public String generateUserId() {
         return UUID.randomUUID().toString();
     }
-
-    public Boolean emptyStr(String str) {
-        return str == null || str.isEmpty();
-    }
 }

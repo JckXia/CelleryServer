@@ -18,6 +18,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -89,22 +90,30 @@ public class RoutineController {
             RoutineRespModel returnVal = mapper.strictMapper().map(createdDto, RoutineRespModel.class);
             return ResponseEntity.status(HttpStatus.CREATED).body(returnVal);
 
-        } catch (RuntimeException e) {
+        } catch (FileNotFoundException | RuntimeException e) {
             // the user trying to create routine does not exist,
-            // user has valid jwt but email does not match the valid user, or
-            // user is adding a nonexistent product to new routine
+            // user has valid jwt but email does not match the valid user,
+            // user is adding a nonexistent product to new routine, or
+            // user does not own the products to add to the new routine
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
 
     // delete routine by id
     @DeleteMapping(path = "/{id}")
-    public ResponseEntity<String> deleteRoutine(@PathVariable String id) {
+    public ResponseEntity<String> deleteRoutine(@PathVariable String id, @RequestHeader(value = "${authentication.authorization}") String auth) {
         try {
-            routinesService.deleteRoutine(id);
+            auth = auth.replace(env.getProperty("authentication.bearer"), "");
+            UserDto userDto = getUserDto(auth);
+
+            if (!jwtUtil.validateToken(auth, userDto)) { // max routines a user can have is 2
+                return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(null);
+            }
+
+            routinesService.deleteRoutine(jwtUtil.getEmailFromToken(auth), id);
             return ResponseEntity.status(HttpStatus.OK).body("Successfully deleted routine");
 
-        } catch (FileNotFoundException e) {
+        } catch (UsernameNotFoundException | FileNotFoundException e) { // user or routine does not exist
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
@@ -112,9 +121,17 @@ public class RoutineController {
     // remove products from routine
     @PatchMapping(path = "/remove-products/{id}")
     public ResponseEntity<RoutineRespModel> removeProductsFromRoutine(@PathVariable String id,
-                                                                      @Valid @RequestBody ProductsInRoutineRequestModel productsToRemove) {
+                                                                      @Valid @RequestBody ProductsInRoutineRequestModel productsToRemove,
+                                                                      @RequestHeader(value = "${authentication.authorization}") String auth) {
         try {
-            RoutineDto returnDto = routinesService.removeProductsFromRoutine(id, productsToRemove.getProductIds());
+            auth = auth.replace(env.getProperty("authentication.bearer"), "");
+            UserDto userDto = getUserDto(auth);
+
+            if (!jwtUtil.validateToken(auth, userDto)) { // max routines a user can have is 2
+                return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(null);
+            }
+
+            RoutineDto returnDto = routinesService.removeProductsFromRoutine(jwtUtil.getEmailFromToken(auth), id, productsToRemove.getProductIds());
 
             if (returnDto != null) {
                 RoutineRespModel returnVal = mapper.strictMapper().map(returnDto, RoutineRespModel.class);
@@ -122,8 +139,8 @@ public class RoutineController {
             }
             return ResponseEntity.status(HttpStatus.OK).body(null);
 
-        } catch (FileNotFoundException e) {
-            // when routine does not exist
+        } catch (UsernameNotFoundException | FileNotFoundException e) {
+            // when user or routine does not exist
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
@@ -131,9 +148,13 @@ public class RoutineController {
     // add products to routine
     @PatchMapping(path = "/add-products/{id}")
     public ResponseEntity<RoutineRespModel> addProductsToRoutine(@PathVariable String id,
-                                                                 @Valid @RequestBody ProductsInRoutineRequestModel productsToAdd) {
+                                                                 @Valid @RequestBody ProductsInRoutineRequestModel productsToAdd,
+                                                                 @RequestHeader(value = "${authentication.authorization}") String auth) {
         try {
-            RoutineDto returnDto = routinesService.addProductsToRoutine(id, productsToAdd.getProductIds());
+            auth = auth.replace(env.getProperty("authentication.bearer"), "");
+            UserDto userDto = getUserDto(auth);
+
+            RoutineDto returnDto = routinesService.addProductsToRoutine(jwtUtil.getEmailFromToken(auth), id, productsToAdd.getProductIds());
 
             RoutineRespModel returnVal = mapper.strictMapper().map(returnDto, RoutineRespModel.class);
             return ResponseEntity.status(HttpStatus.OK).body(returnVal);
