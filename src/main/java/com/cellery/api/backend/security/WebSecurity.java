@@ -1,5 +1,6 @@
 package com.cellery.api.backend.security;
 
+import com.cellery.api.backend.shared.Util.JwtUtil;
 import com.cellery.api.backend.ui.service.UsersService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -17,7 +18,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -26,12 +26,15 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
     private Environment environment;
     private UsersService usersService;
     private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private JwtUtil jwtUtil;
 
     @Autowired
-    public WebSecurity(Environment environment, UsersService userService, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public WebSecurity(Environment environment, UsersService userService, BCryptPasswordEncoder bCryptPasswordEncoder,
+                       JwtUtil jwtUtil) {
         this.environment = environment;
         this.usersService = userService;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.jwtUtil = jwtUtil;
     }
 
     @Override
@@ -65,13 +68,13 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
     }
 
     private JwtAuthenticationFilter getAuthenticationFilter() throws Exception {
-        JwtAuthenticationFilter authenticationFilter = new JwtAuthenticationFilter(environment, usersService, authenticationManager());
+        JwtAuthenticationFilter authenticationFilter = new JwtAuthenticationFilter(environment, usersService, authenticationManager(), jwtUtil);
         authenticationFilter.setFilterProcessesUrl("/users/login");
         return authenticationFilter;
     }
 
     private JwtAuthorizationFilter getAuthorizationFilter() throws Exception {
-        JwtAuthorizationFilter authorizationFilter = new JwtAuthorizationFilter(environment, authenticationManager());
+        JwtAuthorizationFilter authorizationFilter = new JwtAuthorizationFilter(environment, authenticationManager(), jwtUtil);
         return authorizationFilter;
     }
 

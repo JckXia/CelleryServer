@@ -1,16 +1,17 @@
 package com.cellery.api.backend.ui.service;
 
 import com.cellery.api.backend.shared.UserDto;
+import com.cellery.api.backend.shared.Util.MapperUtil;
 import com.cellery.api.backend.ui.data.UserEntity;
 import com.cellery.api.backend.ui.data.UsersRepository;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -20,12 +21,14 @@ public class UsersServiceImpl implements UsersService {
 
     BCryptPasswordEncoder bCryptPasswordEncoder;
     UsersRepository usersRepository;
+    MapperUtil mapper;
 
 
     @Autowired
-    public UsersServiceImpl(BCryptPasswordEncoder bcryptPasswordEncoder, UsersRepository usersRepository) {
+    public UsersServiceImpl(BCryptPasswordEncoder bcryptPasswordEncoder, UsersRepository usersRepository, MapperUtil mapper) {
         this.bCryptPasswordEncoder = bcryptPasswordEncoder;
         this.usersRepository = usersRepository;
+        this.mapper = mapper;
     }
 
     @Override
@@ -33,17 +36,21 @@ public class UsersServiceImpl implements UsersService {
         userDetails.setUserId(UUID.randomUUID().toString());
         userDetails.setEncryptedPassword(bCryptPasswordEncoder.encode(userDetails.getPassword()));
 
-        ModelMapper modelMapper = new ModelMapper();
-        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+        ModelMapper modelMapper = mapper.strictMapper();
         UserEntity userEntity = modelMapper.map(userDetails, UserEntity.class);
+
+        // make sure routines is empty
+        userEntity.setRoutines(new ArrayList<>());
+
         usersRepository.save(userEntity);
 
         UserDto returnDto = modelMapper.map(userEntity, UserDto.class);
         return returnDto;
     }
 
+    @Transactional
     @Override
-    public UserDto getUserDetailsByEmail(String email) {
+    public UserDto getUserDetailsByEmail(String email) throws UsernameNotFoundException {
         UserEntity userEntityDbObject = usersRepository.findByEmail(email);
         if (userEntityDbObject == null) {
             throw new UsernameNotFoundException("User " + email + " does not exist!");

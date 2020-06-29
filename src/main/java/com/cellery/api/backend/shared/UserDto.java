@@ -1,6 +1,7 @@
 package com.cellery.api.backend.shared;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class UserDto implements Serializable {
     private static final long serialVersionUID = -213909192348581234L;
@@ -11,9 +12,18 @@ public class UserDto implements Serializable {
     private String password;
     private String userId;
     private String encryptedPassword;
+    private List<RoutineDto> routines;
 
     public static long getSerialVersionUID() {
         return serialVersionUID;
+    }
+
+    public List<RoutineDto> getRoutines() {
+        return routines;
+    }
+
+    public void setRoutines(List<RoutineDto> routines) {
+        this.routines = routines;
     }
 
     public String getEncryptedPassword() {

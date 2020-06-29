@@ -1,11 +1,10 @@
 package com.cellery.api.backend.security;
 
 import com.cellery.api.backend.shared.UserDto;
+import com.cellery.api.backend.shared.Util.JwtUtil;
 import com.cellery.api.backend.ui.model.request.LoginRequestModel;
 import com.cellery.api.backend.ui.service.UsersService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,18 +19,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private AuthenticationManager authenticationManager;
     private UsersService usersService;
     private Environment environment;
+    private JwtUtil jwtUtil;
 
-    public JwtAuthenticationFilter(Environment environment, UsersService usersService, AuthenticationManager authenticationManager) {
+    public JwtAuthenticationFilter(Environment environment, UsersService usersService, AuthenticationManager authenticationManager,
+                                   JwtUtil jwtUtil) {
         this.authenticationManager = authenticationManager;
         this.usersService = usersService;
         this.environment = environment;
+        this.jwtUtil = jwtUtil;
         super.setAuthenticationManager(authenticationManager);
     }
 
@@ -60,11 +61,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         System.out.println(environment.getProperty("authentication.jwt.secret"));
         //Generate JWT tokens
-        String token = Jwts.builder()
-                        .setSubject(userDetails.getUserId())
-                .setExpiration(new Date(System.currentTimeMillis() + Long.parseLong("12312414124")))
-                .signWith(SignatureAlgorithm.HS512,environment.getProperty("authentication.jwt.secret"))
-                .compact();
+        String token = jwtUtil.generateToken(email);
         response.addHeader("token",token);
         response.addHeader("userId",userDetails.getUserId());
     }
