@@ -59,7 +59,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         UserDto userDetails = usersService.getUserDetailsByEmail(email);
 
-        System.out.println(environment.getProperty("authentication.jwt.secret"));
         //Generate JWT tokens
         String token = jwtUtil.generateToken(email);
         response.addHeader("token",token);

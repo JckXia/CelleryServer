@@ -6,13 +6,21 @@ import java.util.List;
 public class UserDto implements Serializable {
     private static final long serialVersionUID = -213909192348581234L;
 
-    private String firstName;
-    private String lastName;
+    private String userName;
     private String email;
     private String password;
     private String userId;
     private String encryptedPassword;
     private List<RoutineDto> routines;
+
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
 
     public static long getSerialVersionUID() {
         return serialVersionUID;
@@ -50,27 +58,11 @@ public class UserDto implements Serializable {
         this.password = password;
     }
 
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
     public String getEmail() {
         return email;
     }
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
     }
 }

@@ -1,6 +1,8 @@
 package com.cellery.api.backend.security;
 
+import com.cellery.api.backend.shared.UserDto;
 import com.cellery.api.backend.shared.Util.JwtUtil;
+import com.cellery.api.backend.ui.service.UsersService;
 import io.jsonwebtoken.JwtException;
 import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,11 +21,13 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
     private Environment environment;
     private JwtUtil jwtUtil;
+    private UsersService usersService;
 
-    public JwtAuthorizationFilter(Environment environment, AuthenticationManager authManager, JwtUtil jwtUtil) {
+    public JwtAuthorizationFilter(Environment environment, AuthenticationManager authManager, UsersService service, JwtUtil jwtUtil) {
         super(authManager);
         this.environment = environment;
         this.jwtUtil = jwtUtil;
+        this.usersService=service;
     }
 
     @Override
@@ -49,8 +53,8 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
         try {
             String email = jwtUtil.getEmailFromToken(token);
-
-            if (email == null) {
+            UserDto user = usersService.getUserDetailsByEmail(email);
+            if (email == null || user == null) {
                 return null;
             }
             return new UsernamePasswordAuthenticationToken(email, null, new ArrayList<>());

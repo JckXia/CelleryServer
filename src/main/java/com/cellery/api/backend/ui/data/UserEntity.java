@@ -15,11 +15,8 @@ public class UserEntity implements Serializable {
     @GeneratedValue
     private long id;
 
-    @Column(nullable = false, length = 50)
-    private String firstName;
-
-    @Column(nullable = false, length = 50)
-    private String lastName;
+    @Column(nullable=false,length=255,unique = true)
+    private String userName;
 
     @Column(nullable = false, length = 120, unique = true)
     private String email;
@@ -76,22 +73,6 @@ public class UserEntity implements Serializable {
         this.email = email;
     }
 
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
     public List<ProductEntity> getUserProducts() {
         return userProducts;
     }
@@ -106,5 +87,13 @@ public class UserEntity implements Serializable {
 
     public void removeRoutineFromUser(RoutineEntity routine) {
         this.routines.remove(routine);
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 }

@@ -74,7 +74,7 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
     }
 
     private JwtAuthorizationFilter getAuthorizationFilter() throws Exception {
-        JwtAuthorizationFilter authorizationFilter = new JwtAuthorizationFilter(environment, authenticationManager(), jwtUtil);
+        JwtAuthorizationFilter authorizationFilter = new JwtAuthorizationFilter(environment, authenticationManager(), usersService, jwtUtil);
         return authorizationFilter;
     }
 
