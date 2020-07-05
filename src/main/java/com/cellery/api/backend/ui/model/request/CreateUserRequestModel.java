@@ -6,13 +6,10 @@ import javax.validation.constraints.Size;
 
 public class CreateUserRequestModel {
 
-    @NotNull(message = "First name of user cannot be null")
-    @Size(min = 2, message = "First name cant be less than two characters", max = 255)
-    private String firstName;
 
-    @NotNull(message = "Last name of user cannot be null")
-    @Size(min = 2, message = "Last name cant be less than two characters", max = 255)
-    private String lastName;
+    @NotNull(message = "User name cannot be null!")
+    @Size(min = 5, message = "UserName can't be less than 5 characters", max = 255)
+    private String userName;
 
     @NotNull(message = "Password can't be null!")
     private String password;
@@ -30,6 +27,14 @@ public class CreateUserRequestModel {
         this.email = email;
     }
 
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
     public String getPassword() {
         return password;
     }
@@ -38,19 +43,4 @@ public class CreateUserRequestModel {
         this.password = password;
     }
 
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
 }
