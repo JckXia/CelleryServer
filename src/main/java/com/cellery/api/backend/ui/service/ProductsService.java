@@ -136,12 +136,12 @@ public class ProductsService {
         // get ref db object
         ProductEntity productEdit = productsRepository.getOneByProductId(product.getProductId());
 
-        if (!product.getName().isEmpty() && product.getName() != null && !product.getName().equals(productEdit.getName())) {
+        if (product.getName() != null &&!product.getName().isEmpty() && !product.getName().equals(productEdit.getName())) {
             productEdit.setName(product.getName());
         }
 
         // product desc is allowed to be empty
-        if (!product.getDescription().equals(productEdit.getDescription())) {
+        if (product.getDescription() != null && !product.getDescription().equals(productEdit.getDescription())) {
             productEdit.setDescription(product.getDescription());
         }
 
