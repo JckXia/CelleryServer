@@ -141,7 +141,7 @@ public class ProductsService {
         }
 
         // product desc is allowed to be empty
-        if (product.getDescription() == null || product.getDescription() == "" || !product.getDescription().equals(productEdit.getDescription())) {
+        if (product.getDescription() == null || product.getDescription().isEmpty() || !product.getDescription().equals(productEdit.getDescription())) {
             productEdit.setDescription(product.getDescription());
         }
 
