@@ -49,6 +49,43 @@ public class LogEntity implements Serializable {
     @Column
     private String created_at;
 
+    @Column
+    private String am_routine;
+
+    @Column
+    private String pm_routine;
+
+
+    public String getPm_routine() {
+        return pm_routine;
+    }
+
+    public void setPm_routine(String pm_routine) {
+        this.pm_routine = pm_routine;
+    }
+
+    public String getAm_routine() {
+        return am_routine;
+    }
+
+    public void setAm_routine(String am_routine) {
+        this.am_routine = am_routine;
+    }
+
+    @ManyToOne(fetch = FetchType.LAZY) // owning side of relationship
+    @JoinColumn(name = "user_fk")
+    private UserEntity logUser;
+
+    public UserEntity getLogUser() {
+        return logUser;
+    }
+
+
+
+    public void setLogUser(UserEntity logUser) {
+        this.logUser = logUser;
+    }
+
     public static long getSerialVersionUID() {
         return serialVersionUID;
     }
