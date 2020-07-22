@@ -1,25 +1,19 @@
 package com.cellery.api.backend.ui.controllers;
-
-
 import com.cellery.api.backend.shared.LogDto;
 import com.cellery.api.backend.shared.UserDto;
 import com.cellery.api.backend.shared.Util.JwtUtil;
 import com.cellery.api.backend.shared.Util.MapperUtil;
-import com.cellery.api.backend.ui.model.request.CreateUserRequestModel;
 import com.cellery.api.backend.ui.model.response.CreateLogRespModel;
-import com.cellery.api.backend.ui.model.response.RoutineRespModel;
 import com.cellery.api.backend.ui.service.LogsService;
 import com.cellery.api.backend.ui.service.UsersService;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+
 
 @RestController
 @RequestMapping(path = "/log")
@@ -63,6 +57,21 @@ public class LogController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
+    }
+
+    @PutMapping(path="/{log_id}")
+    public String updateLog( @PathVariable String log_id, @RequestHeader(value = "${authentication.authorization}") String auth){
+
+        // Inside this controller, we have to verify
+        // 1. The log_id exists
+        //      (The log that we are attempting to edit is today's log), else we want to reject
+        // 2. THe data that we are attempting to update is valid
+        //    Possible data that we have to update:
+        //    Am/pm routine  // This will be sent as an object of osrt?
+        //    Rating
+        //    is_time_of_month
+        //    Image (TBD)
+        return log_id;
     }
 
     private UserDto getUserDto(String auth) throws UsernameNotFoundException {
