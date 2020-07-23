@@ -5,6 +5,7 @@ import com.cellery.api.backend.shared.UserDto;
 import com.cellery.api.backend.shared.Util.JwtUtil;
 import com.cellery.api.backend.shared.Util.MapperUtil;
 import com.cellery.api.backend.ui.model.request.ProductsInRoutineRequestModel;
+import com.cellery.api.backend.ui.model.response.AmPmRoutineRespModel;
 import com.cellery.api.backend.ui.model.response.RoutineRespModel;
 import com.cellery.api.backend.ui.service.RoutinesService;
 import com.cellery.api.backend.ui.service.UsersService;
@@ -52,7 +53,7 @@ public class RoutineController {
 
     // get all routines
     @GetMapping
-    public ResponseEntity<List<RoutineRespModel>> getRoutines(@RequestHeader(value = "${authentication.authorization}") String auth) {
+    public ResponseEntity<AmPmRoutineRespModel> getRoutines(@RequestHeader(value = "${authentication.authorization}") String auth) {
         try {
             auth = auth.replace(env.getProperty("authentication.bearer"), "");
             UserDto userDto = getUserDto(auth);
@@ -62,7 +63,11 @@ public class RoutineController {
             }
 
             List<RoutineDto> usersRoutines = routinesService.getRoutines(jwtUtil.getEmailFromToken(auth));
-            List<RoutineRespModel> returnVal = mapper.strictMapper().map(usersRoutines, routineRespModelListType());
+            List<RoutineRespModel> routines = mapper.strictMapper().map(usersRoutines, routineRespModelListType());
+
+            // distinguish between am and pm routine
+            AmPmRoutineRespModel returnVal = new AmPmRoutineRespModel(routines);
+
             return ResponseEntity.status(HttpStatus.OK).body(returnVal);
 
         } catch (UsernameNotFoundException e) {
@@ -83,7 +88,7 @@ public class RoutineController {
             }
 
             // create routine and add it to user
-            RoutineDto createdDto = routinesService.createRoutine(jwtUtil.getEmailFromToken(auth), createRoutine.getProductIds());
+            RoutineDto createdDto = routinesService.createRoutine(jwtUtil.getEmailFromToken(auth), createRoutine.getProductIds(), createRoutine.getAm());
 
             RoutineRespModel returnVal = mapper.strictMapper().map(createdDto, RoutineRespModel.class);
             return ResponseEntity.status(HttpStatus.CREATED).body(returnVal);

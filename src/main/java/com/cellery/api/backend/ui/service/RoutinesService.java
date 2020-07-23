@@ -47,7 +47,7 @@ public class RoutinesService {
     }
 
     @Transactional // do in one db transaction
-    public RoutineDto createRoutine(String email, List<String> addProducts) throws RuntimeException, FileNotFoundException {
+    public RoutineDto createRoutine(String email, List<String> addProducts, Boolean isAm) throws RuntimeException, FileNotFoundException {
         if (addProducts.isEmpty()) {
             throw new FileNotFoundException("Cannot create routine with no products");
         }
@@ -57,6 +57,7 @@ public class RoutinesService {
 
         RoutineEntity routineEntity = new RoutineEntity();
         routineEntity.setRoutineId(UUID.randomUUID().toString());
+        routineEntity.setAm(isAm);
 
         // add user to routine
         UserEntity userEntity = usersRepository.getOneByEmail(email); // get ref to db object

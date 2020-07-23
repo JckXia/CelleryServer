@@ -4,6 +4,7 @@ import java.util.List;
 
 public class ProductsInRoutineRequestModel {
     private List<String> productIds;
+    private Boolean isAm;
 
     public List<String> getProductIds() {
         return productIds;
@@ -11,5 +12,13 @@ public class ProductsInRoutineRequestModel {
 
     public void setProductIds(List<String> productIds) {
         this.productIds = productIds;
+    }
+
+    public Boolean getAm() {
+        return isAm;
+    }
+
+    public void setAm(Boolean am) {
+        isAm = am;
     }
 }
