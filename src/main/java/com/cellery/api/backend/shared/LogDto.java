@@ -5,49 +5,48 @@ import java.io.Serializable;
 public class LogDto implements Serializable {
     private static final long serialVersionUID = 34470962826401635L;
 
-    private String log_id;
+    private String logId;
     private String note;
     private Integer rating;
-    private String am_routine;
-    private String pm_routine;
-    private String created_at;
+    private String amRoutine;
+    private String pmRoutine;
+    private String createdAt;
 
     public static long getSerialVersionUID() {
         return serialVersionUID;
     }
 
 
-    public String getPm_routine() {
-        return pm_routine;
+    public String getCreatedAt() {
+        return createdAt;
     }
 
-    public void setPm_routine(String pm_routine) {
-        this.pm_routine = pm_routine;
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
     }
 
-    public String getAm_routine() {
-        return am_routine;
+    public String getPmRoutine() {
+        return pmRoutine;
     }
 
-    public void setAm_routine(String am_routine) {
-        this.am_routine = am_routine;
+    public void setPmRoutine(String pmRoutine) {
+        this.pmRoutine = pmRoutine;
     }
 
-    public String getLog_id() {
-        return log_id;
+    public String getAmRoutine() {
+        return amRoutine;
     }
 
-    public void setLog_id(String log_id) {
-        this.log_id = log_id;
+    public void setAmRoutine(String amRoutine) {
+        this.amRoutine = amRoutine;
     }
 
-
-    public String getCreated_at() {
-        return created_at;
+    public String getLogId() {
+        return logId;
     }
 
-    public void setCreated_at(String created_at) {
-        this.created_at = created_at;
+    public void setLogId(String logId) {
+        this.logId = logId;
     }
 
     public String getNote() {

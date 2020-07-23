@@ -23,7 +23,7 @@ public class LogEntity implements Serializable {
     private long id;
 
     @Column
-    private String log_id;
+    private String logId;
 
     @Column
     private String notes;
@@ -32,45 +32,31 @@ public class LogEntity implements Serializable {
     private int rating;
 
     @Column
-    private boolean is_time_of_month;
+    private boolean isTimeOfMonth;
 
     @Column
-    private int year_value;
+    private int yearValue;
 
     @Column
-    private int month_value;
+    private int monthValue;
 
     @OneToMany(mappedBy = "logObject",cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
     private List<ImageEntity> logImages = new ArrayList<>();
 
     @Column
-    private int day_value;
+    private int dayValue;
 
     @Column
-    private String created_at;
+    private String createdAt;
 
     @Column
-    private String am_routine;
+    private String amRoutine;
 
     @Column
-    private String pm_routine;
+    private String pmRoutine;
 
 
-    public String getPm_routine() {
-        return pm_routine;
-    }
 
-    public void setPm_routine(String pm_routine) {
-        this.pm_routine = pm_routine;
-    }
-
-    public String getAm_routine() {
-        return am_routine;
-    }
-
-    public void setAm_routine(String am_routine) {
-        this.am_routine = am_routine;
-    }
 
     @ManyToOne(fetch = FetchType.LAZY) // owning side of relationship
     @JoinColumn(name = "user_fk")
@@ -98,37 +84,6 @@ public class LogEntity implements Serializable {
         this.id = id;
     }
 
-    public String getLog_id() {
-        return log_id;
-    }
-
-    public void setLog_id(String log_id) {
-        this.log_id = log_id;
-    }
-
-    public String getCreated_at() {
-        return created_at;
-    }
-
-    public void setCreated_at(String created_at) {
-        this.created_at = created_at;
-    }
-
-    public int getDay_value() {
-        return day_value;
-    }
-
-    public void setDay_value(int day_value) {
-        this.day_value = day_value;
-    }
-
-    public int getMonth_value() {
-        return month_value;
-    }
-
-    public void setMonth_value(int month_value) {
-        this.month_value = month_value;
-    }
 
     public List<ImageEntity> getLogImages() {
         return logImages;
@@ -138,21 +93,6 @@ public class LogEntity implements Serializable {
         this.logImages = logImages;
     }
 
-    public int getYear_value() {
-        return year_value;
-    }
-
-    public void setYear_value(int year_value) {
-        this.year_value = year_value;
-    }
-
-    public boolean isIs_time_of_month() {
-        return is_time_of_month;
-    }
-
-    public void setIs_time_of_month(boolean is_time_of_month) {
-        this.is_time_of_month = is_time_of_month;
-    }
 
     public String getNotes() {
         return notes;
@@ -168,5 +108,69 @@ public class LogEntity implements Serializable {
 
     public void setRating(int rating) {
         this.rating = rating;
+    }
+
+    public String getLogId() {
+        return logId;
+    }
+
+    public void setLogId(String logId) {
+        this.logId = logId;
+    }
+
+    public String getPmRoutine() {
+        return pmRoutine;
+    }
+
+    public void setPmRoutine(String pmRoutine) {
+        this.pmRoutine = pmRoutine;
+    }
+
+    public String getAmRoutine() {
+        return amRoutine;
+    }
+
+    public void setAmRoutine(String amRoutine) {
+        this.amRoutine = amRoutine;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public int getDayValue() {
+        return dayValue;
+    }
+
+    public void setDayValue(int dayValue) {
+        this.dayValue = dayValue;
+    }
+
+    public int getMonthValue() {
+        return monthValue;
+    }
+
+    public void setMonthValue(int monthValue) {
+        this.monthValue = monthValue;
+    }
+
+    public int getYearValue() {
+        return yearValue;
+    }
+
+    public void setYearValue(int yearValue) {
+        this.yearValue = yearValue;
+    }
+
+    public boolean isTimeOfMonth() {
+        return isTimeOfMonth;
+    }
+
+    public void setTimeOfMonth(boolean timeOfMonth) {
+        isTimeOfMonth = timeOfMonth;
     }
 }

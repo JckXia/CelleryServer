@@ -45,18 +45,33 @@ public class LogsService {
             throw new RuntimeException("Error! user does not exist!");
         }
         LogEntity logEntity = new LogEntity();
-        logEntity.setLog_id(UUID.randomUUID().toString());
+        logEntity.setLogId(UUID.randomUUID().toString());
 
         logEntity.setLogUser(userEntity);
 
         DateFormat date = new SimpleDateFormat("MM/dd/yyyy");
         Date currentTime = Calendar.getInstance().getTime();
         String timeStamp = date.format(currentTime);
-        logEntity.setCreated_at(timeStamp);
+        logEntity.setCreatedAt(timeStamp);
         logsRepository.save(logEntity);
 
         LogDto returnDto = mapper.strictMapper().map(logEntity,LogDto.class);
 
+        return returnDto;
+    }
+
+    public Boolean logBelongsToUser(String email, String logId){
+        LogEntity logEntity =  logsRepository.findByLogId(logId);
+        if(logEntity == null){
+            return false;
+        }
+        UserEntity logUser = logEntity.getLogUser();
+        return logUser.getEmail().equals(email);
+    }
+
+    public LogDto findLogById(String logId){
+        LogEntity logEntity = logsRepository.findByLogId(logId);
+        LogDto returnDto = mapper.strictMapper().map(logEntity,LogDto.class);
         return returnDto;
     }
 }

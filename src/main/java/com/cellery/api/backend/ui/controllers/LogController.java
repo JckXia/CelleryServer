@@ -1,4 +1,5 @@
 package com.cellery.api.backend.ui.controllers;
+
 import com.cellery.api.backend.shared.LogDto;
 import com.cellery.api.backend.shared.UserDto;
 import com.cellery.api.backend.shared.Util.JwtUtil;
@@ -12,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
-
 
 
 @RestController
@@ -59,9 +59,26 @@ public class LogController {
         }
     }
 
-    @PutMapping(path="/{log_id}")
-    public String updateLog( @PathVariable String log_id, @RequestHeader(value = "${authentication.authorization}") String auth){
+    @PutMapping(path = "/{log_id}")
+    public ResponseEntity<CreateLogRespModel> updateLog(@PathVariable String log_id, @RequestHeader(value = "${authentication.authorization}") String auth) {
 
+
+        try {
+            String authToken = auth.replace(env.getProperty("authentication.bearer"), "");
+            UserDto userDto = getUserDto(authToken);
+            if (!jwtUtil.validateToken(authToken, userDto)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+            }
+
+            LogDto logObject = logsService.findLogById(log_id);
+            if (!logsService.logBelongsToUser(userDto.getEmail(), logObject.getLogId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+            }
+
+            return null;
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
         // Inside this controller, we have to verify
         // 1. The log_id exists
         //      (The log that we are attempting to edit is today's log), else we want to reject
@@ -71,7 +88,6 @@ public class LogController {
         //    Rating
         //    is_time_of_month
         //    Image (TBD)
-        return log_id;
     }
 
     private UserDto getUserDto(String auth) throws UsernameNotFoundException {
