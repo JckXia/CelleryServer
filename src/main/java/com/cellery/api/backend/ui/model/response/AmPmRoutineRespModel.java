@@ -1,18 +1,18 @@
 package com.cellery.api.backend.ui.model.response;
 
+import org.springframework.security.core.parameters.P;
+
 import java.util.List;
 
 public class AmPmRoutineRespModel {
     private RoutineRespModel am, pm;
 
     public AmPmRoutineRespModel(List<RoutineRespModel> routines) {
-        if (!routines.isEmpty()) {
-            if (routines.get(0).getAm()) {
-                am = routines.get(0);
-                pm = routines.get(1);
+        for (RoutineRespModel routine : routines) {
+            if (routine.getAm()) {
+                am = routine;
             } else {
-                am = routines.get(1);
-                pm = routines.get(0);
+                pm = routine;
             }
         }
     }
