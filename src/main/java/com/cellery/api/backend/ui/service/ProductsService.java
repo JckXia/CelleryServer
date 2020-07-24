@@ -7,6 +7,7 @@ import com.cellery.api.backend.ui.data.*;
 import com.googlecode.gentyref.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileNotFoundException;
 import java.lang.reflect.Type;
@@ -19,15 +20,17 @@ public class ProductsService {
     private ProductsRepository productsRepository;
     private RoutinesRepository routinesRepository;
     private UsersRepository usersRepository;
+    private RoutinesService routinesService;
     private MapperUtil mapper;
     private BelongsToUserUtil userUtil;
 
     @Autowired
     public ProductsService(ProductsRepository productsRepository, RoutinesRepository routinesRepository,
-                           UsersRepository usersRepository, MapperUtil mapper, BelongsToUserUtil userUtil) {
+                           UsersRepository usersRepository, RoutinesService routinesService, MapperUtil mapper, BelongsToUserUtil userUtil) {
         this.productsRepository = productsRepository;
         this.routinesRepository = routinesRepository;
         this.usersRepository = usersRepository;
+        this.routinesService = routinesService;
         this.mapper = mapper;
         this.userUtil = userUtil;
     }
@@ -83,26 +86,27 @@ public class ProductsService {
         }
 
         ProductEntity productEntity = productsRepository.findByProductId(deleteProductId);
+        UserEntity user = productEntity.getProductUser();
+        user.removeProductFromUser(productEntity);
+        usersRepository.save(user);
 
         // The product will be deleted regardless if it is in a routine or not. On the frontend, the user
         // will be prompted about the effects of deleting the product if it is in a routine (it will disappear from
         // routines it is in)
+        List<RoutineEntity> inRoutines = productEntity.getRoutines();
 
         // check if the routine(s) that have this product have only 1 product, so deleting the product
         // will delete that routine too
-        List<RoutineEntity> inRoutines = productEntity.getRoutines();
+
         for (RoutineEntity routine : inRoutines) {
             if (routine.getProducts().size() == 1) {
-                routinesRepository.delete(routine); // goodbye
+                routinesService.deleteRoutine(email, routine.getRoutineId());
             } else {
-                // remove it from the routine
-                routine.removeProductFromRoutine(productEntity); // if we do not, the product still exists in db even after line 92 since routine is the parent
+                routine.removeProductFromRoutine(productEntity); // if we do not, the product still exists in db even after the last line
                 routinesRepository.save(routine);
             }
         }
-        UserEntity user = productEntity.getProductUser();
-        user.removeProductFromUser(productEntity);
-        usersRepository.save(user);
+
         productsRepository.delete(productEntity);
     }
 

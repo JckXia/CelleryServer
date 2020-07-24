@@ -88,7 +88,7 @@ public class RoutineController {
             }
 
             // create routine and add it to user
-            RoutineDto createdDto = routinesService.createRoutine(jwtUtil.getEmailFromToken(auth), createRoutine.getProductIds(), createRoutine.getAm());
+            RoutineDto createdDto = routinesService.createRoutine(jwtUtil.getEmailFromToken(auth), createRoutine.getProductIds(), createRoutine.getIsAm());
 
             RoutineRespModel returnVal = mapper.strictMapper().map(createdDto, RoutineRespModel.class);
             return ResponseEntity.status(HttpStatus.CREATED).body(returnVal);

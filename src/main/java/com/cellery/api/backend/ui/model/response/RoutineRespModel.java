@@ -23,11 +23,11 @@ public class RoutineRespModel {
         this.products = products;
     }
 
-    public Boolean getAm() {
+    public Boolean getIsAm() {
         return isAm;
     }
 
-    public void setAm(Boolean am) {
+    public void setIsAm(Boolean am) {
         isAm = am;
     }
 }

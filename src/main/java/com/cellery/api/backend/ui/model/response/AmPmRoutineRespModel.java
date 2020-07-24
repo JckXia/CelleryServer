@@ -9,7 +9,7 @@ public class AmPmRoutineRespModel {
 
     public AmPmRoutineRespModel(List<RoutineRespModel> routines) {
         for (RoutineRespModel routine : routines) {
-            if (routine.getAm()) {
+            if (routine.getIsAm()) {
                 am = routine;
             } else {
                 pm = routine;

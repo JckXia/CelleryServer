@@ -7,7 +7,7 @@ public class RoutineDto implements Serializable {
     private static final long serialVersionUID = -3754051696982657160L;
 
     private String routineId;
-    private boolean isAm;
+    private Boolean isAm;
     private List<ProductDto> products;
 
     public static long getSerialVersionUID() {
@@ -30,11 +30,11 @@ public class RoutineDto implements Serializable {
         this.products = products;
     }
 
-    public boolean getAm() {
+    public Boolean getIsAm() {
         return isAm;
     }
 
-    public void setAm(boolean am) {
+    public void setIsAm(Boolean am) {
         isAm = am;
     }
 }

@@ -23,8 +23,8 @@ public class RoutineEntity implements Serializable {
     @JoinColumn(name = "user_fk")
     private UserEntity user;
 
-    @Column
-    private boolean isAm;
+    @Column(nullable = false)
+    private Boolean isAm;
 
     @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinTable(name = "routine_products",
@@ -70,11 +70,11 @@ public class RoutineEntity implements Serializable {
         this.products.add(product);
     }
 
-    public boolean getAm() {
+    public boolean getIsAm() {
         return isAm;
     }
 
-    public void setAm(boolean am) {
+    public void setIsAm(Boolean am) {
         isAm = am;
     }
 }
