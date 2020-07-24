@@ -28,7 +28,7 @@ public class ProductEntity implements Serializable {
     @ManyToMany(mappedBy = "products")
     private List<RoutineEntity> routines = new ArrayList<>();
 
-    @ManyToOne(fetch = FetchType.LAZY) // owning side of relationship
+    @ManyToOne // owning side of relationship
     @JoinColumn(name = "user_fk")
     private UserEntity productUser;
 
