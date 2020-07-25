@@ -7,7 +7,6 @@ import com.cellery.api.backend.ui.data.*;
 import com.googlecode.gentyref.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileNotFoundException;
 import java.lang.reflect.Type;
@@ -114,9 +113,8 @@ public class ProductsService {
         productsRepository.delete(productEntity);
     }
 
-    /* In a list of products to delete, if one product does not exist, we will
-        continue iterating over the remaining products. An exception does not stop the loop.
-        Returns the number of products deleted
+    /* In a list of products to delete, if an exception occurs, throws it.
+        Returns the number of products deleted if no exception thrown
      */
     public Integer deleteProducts(String email, List<String> ids) throws FileNotFoundException {
         Integer numDeleted = 0;
@@ -126,12 +124,8 @@ public class ProductsService {
 
         // any exceptions in the loop come from the product not existing in the db but still owned by the user
         for (String id : ids) {
-            try {
-                deleteProduct(email, id);
-                ++numDeleted;
-            } catch (FileNotFoundException e) {
-                /* I know! This is strange and definitely not the cleanest way to deal with our case */
-            }
+            deleteProduct(email, id);
+            ++numDeleted;
         }
         return numDeleted;
     }

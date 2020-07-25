@@ -144,7 +144,7 @@ public class ProductController {
 
     // delete a list of products
     @DeleteMapping(path = "/batch-delete")
-    public ResponseEntity<Integer> deleteProductsById(@Valid @RequestBody List<ProductRequestModel> productsToDelete,
+    public ResponseEntity<Integer> deleteProductsById(@Valid @RequestBody List<String> productsToDelete,
                                                       @RequestHeader(value = "${authentication.authorization}") String auth) {
         try {
             auth = auth.replace(env.getProperty("authentication.bearer"), "");
@@ -155,9 +155,9 @@ public class ProductController {
             }
 
             // map to a list of productIds
-            List<String> productIds = productsToDelete.stream().map(product -> product.getProductId()).collect(Collectors.toList());
+           // List<String> productIds = productsToDelete.stream().map(product -> product.getProductId()).collect(Collectors.toList());
 
-            Integer numDeleted = productsService.deleteProducts(jwtUtil.getEmailFromToken(auth), productIds);
+            Integer numDeleted = productsService.deleteProducts(jwtUtil.getEmailFromToken(auth), productsToDelete);
 
         /* The frontend can check if the list size request is equal to the number deleted
             If not (and the number deleted will be less than the list size request), products either do not
@@ -166,7 +166,7 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.OK).body(numDeleted);
 
         } catch (FileNotFoundException e) {
-            // when a product to be deleted is not owned by the user
+            // when a product to be deleted is not owned by the user or could not be deleted
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
