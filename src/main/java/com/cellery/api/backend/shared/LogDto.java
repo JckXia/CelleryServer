@@ -6,11 +6,20 @@ public class LogDto implements Serializable {
     private static final long serialVersionUID = 34470962826401635L;
 
     private String logId;
-    private String note;
+    private String notes;
     private Integer rating;
     private String amRoutine;
     private String pmRoutine;
     private String createdAt;
+    private Boolean isTimeOfMonth;
+
+    public Boolean getIsTimeOfMonth() {
+        return isTimeOfMonth;
+    }
+
+    public void setIsTimeOfMonth(Boolean timeOfMonth) {
+        isTimeOfMonth = timeOfMonth;
+    }
 
     public static long getSerialVersionUID() {
         return serialVersionUID;
@@ -49,12 +58,12 @@ public class LogDto implements Serializable {
         this.logId = logId;
     }
 
-    public String getNote() {
-        return note;
+    public String getNotes() {
+        return notes;
     }
 
-    public void setNote(String note) {
-        this.note = note;
+    public void setNotes(String note) {
+        this.notes = note;
     }
 
     public Integer getRating() {

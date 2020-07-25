@@ -32,7 +32,7 @@ public class LogEntity implements Serializable {
     private int rating;
 
     @Column
-    private boolean isTimeOfMonth;
+    private Boolean isTimeOfMonth;
 
     @Column
     private int yearValue;
@@ -166,11 +166,11 @@ public class LogEntity implements Serializable {
         this.yearValue = yearValue;
     }
 
-    public boolean isTimeOfMonth() {
+    public Boolean getIsTimeOfMonth() {
         return isTimeOfMonth;
     }
 
-    public void setTimeOfMonth(boolean timeOfMonth) {
+    public void setIsTimeOfMonth(Boolean timeOfMonth) {
         isTimeOfMonth = timeOfMonth;
     }
 }

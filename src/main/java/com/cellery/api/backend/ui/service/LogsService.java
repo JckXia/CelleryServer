@@ -6,6 +6,7 @@ import com.cellery.api.backend.ui.data.LogEntity;
 import com.cellery.api.backend.ui.data.LogRepository;
 import com.cellery.api.backend.ui.data.UserEntity;
 import com.cellery.api.backend.ui.data.UsersRepository;
+import com.cellery.api.backend.ui.model.request.UpdateLogRequestModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,6 +68,19 @@ public class LogsService {
         }
         UserEntity logUser = logEntity.getLogUser();
         return logUser.getEmail().equals(email);
+    }
+
+
+    public LogDto updateLogEntity(UpdateLogRequestModel requestObject,String logId){
+       LogEntity logEntity =  logsRepository.findByLogId(logId);
+       logEntity.setAmRoutine(requestObject.getAmRoutine());
+       logEntity.setPmRoutine(requestObject.getPmRoutine());
+       logEntity.setRating(requestObject.getRating());
+       logEntity.setIsTimeOfMonth(requestObject.getIsTimeOfMonth());
+       logEntity.setNotes(requestObject.getNotes());
+       logsRepository.save(logEntity);
+       LogDto returnDto = mapper.strictMapper().map(logEntity,LogDto.class);
+       return returnDto;
     }
 
     public LogDto findLogById(String logId){

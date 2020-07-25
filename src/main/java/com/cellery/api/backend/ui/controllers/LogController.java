@@ -4,7 +4,9 @@ import com.cellery.api.backend.shared.LogDto;
 import com.cellery.api.backend.shared.UserDto;
 import com.cellery.api.backend.shared.Util.JwtUtil;
 import com.cellery.api.backend.shared.Util.MapperUtil;
+import com.cellery.api.backend.ui.model.request.UpdateLogRequestModel;
 import com.cellery.api.backend.ui.model.response.CreateLogRespModel;
+import com.cellery.api.backend.ui.model.response.UpdateLogRespModel;
 import com.cellery.api.backend.ui.service.LogsService;
 import com.cellery.api.backend.ui.service.UsersService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 
 @RestController
@@ -59,9 +63,11 @@ public class LogController {
         }
     }
 
-    @PutMapping(path = "/{log_id}")
-    public ResponseEntity<CreateLogRespModel> updateLog(@PathVariable String log_id, @RequestHeader(value = "${authentication.authorization}") String auth) {
-
+    @PutMapping(path = "/{log_id}", consumes = "application/json", produces =
+            "application/json")
+    public ResponseEntity<UpdateLogRespModel> updateLog(@PathVariable String log_id,
+                                                           @Valid @RequestBody UpdateLogRequestModel logUpdates,
+                                                           @RequestHeader(value = "${authentication.authorization}") String auth) {
 
         try {
             String authToken = auth.replace(env.getProperty("authentication.bearer"), "");
@@ -70,12 +76,13 @@ public class LogController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
             }
 
-            LogDto logObject = logsService.findLogById(log_id);
-            if (!logsService.logBelongsToUser(userDto.getEmail(), logObject.getLogId())) {
+            if (!logsService.logBelongsToUser(userDto.getEmail(), log_id)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
             }
 
-            return null;
+            LogDto logUpdateObject = logsService.updateLogEntity(logUpdates, log_id);
+            UpdateLogRespModel returnLogUpdateModel = modelMapper.strictMapper().map(logUpdateObject,UpdateLogRespModel.class);
+            return ResponseEntity.status(HttpStatus.OK).body(returnLogUpdateModel);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
