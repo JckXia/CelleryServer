@@ -86,15 +86,6 @@ public class LogController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
-        // Inside this controller, we have to verify
-        // 1. The log_id exists
-        //      (The log that we are attempting to edit is today's log), else we want to reject
-        // 2. THe data that we are attempting to update is valid
-        //    Possible data that we have to update:
-        //    Am/pm routine  // This will be sent as an object of osrt?
-        //    Rating
-        //    is_time_of_month
-        //    Image (TBD)
     }
 
     private UserDto getUserDto(String auth) throws UsernameNotFoundException {

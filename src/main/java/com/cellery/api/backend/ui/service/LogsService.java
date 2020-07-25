@@ -66,8 +66,12 @@ public class LogsService {
         if(logEntity == null){
             return false;
         }
+
+        DateFormat date = new SimpleDateFormat("MM/dd/yyyy");
+        Date currentTime = Calendar.getInstance().getTime();
+        String timeStamp = date.format(currentTime);
         UserEntity logUser = logEntity.getLogUser();
-        return logUser.getEmail().equals(email);
+        return logUser.getEmail().equals(email) && logEntity.getCreatedAt().equals(timeStamp);
     }
 
 
