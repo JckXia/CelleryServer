@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileNotFoundException;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -86,26 +88,28 @@ public class ProductsService {
         }
 
         ProductEntity productEntity = productsRepository.findByProductId(deleteProductId);
-        UserEntity user = productEntity.getProductUser();
-        user.removeProductFromUser(productEntity);
-        usersRepository.save(user);
 
         // The product will be deleted regardless if it is in a routine or not. On the frontend, the user
         // will be prompted about the effects of deleting the product if it is in a routine (it will disappear from
         // routines it is in)
-        List<RoutineEntity> inRoutines = productEntity.getRoutines();
+        List<RoutineEntity> inRoutines = Collections.synchronizedList(new ArrayList<>(productEntity.getRoutines()));
 
         // check if the routine(s) that have this product have only 1 product, so deleting the product
         // will delete that routine too
 
         for (RoutineEntity routine : inRoutines) {
             if (routine.getProducts().size() == 1) {
+                routine.removeProductFromRoutine(productEntity);
                 routinesService.deleteRoutine(email, routine.getRoutineId());
             } else {
                 routine.removeProductFromRoutine(productEntity); // if we do not, the product still exists in db even after the last line
                 routinesRepository.save(routine);
             }
         }
+
+        UserEntity user = productEntity.getProductUser();
+        user.removeProductFromUser(productEntity);
+        usersRepository.save(user);
 
         productsRepository.delete(productEntity);
     }
