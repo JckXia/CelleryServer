@@ -6,6 +6,15 @@ public class UpdateLogRequestModel {
     private String notes;
     private Integer rating;
     private Boolean isTimeOfMonth;
+    private Long  logUpdateTimeStamp;
+
+    public Long getLogUpdateTimeStamp() {
+        return logUpdateTimeStamp;
+    }
+
+    public void setLogUpdateTimeStamp(Long logUpdateTimeStamp) {
+        this.logUpdateTimeStamp = logUpdateTimeStamp;
+    }
 
     public String getNotes() {
         return notes;

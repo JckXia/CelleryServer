@@ -37,6 +37,14 @@ public class UserEntity implements Serializable {
     @OneToMany(mappedBy = "productUser", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ProductEntity> userProducts = new ArrayList<>();
 
+    public List<LogEntity> getLogs() {
+        return logs;
+    }
+
+    public void setLogs(List<LogEntity> logs) {
+        this.logs = logs;
+    }
+
     public List<RoutineEntity> getRoutines() {
         return routines;
     }

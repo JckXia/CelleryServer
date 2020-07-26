@@ -46,6 +46,10 @@ public class LogEntity implements Serializable {
     @Column
     private int dayValue;
 
+
+    @Column
+    private Long createdTimeStamp;
+
     @Column
     private String createdAt;
 
@@ -56,7 +60,13 @@ public class LogEntity implements Serializable {
     private String pmRoutine;
 
 
+    public Long getCreatedTimeStamp() {
+        return createdTimeStamp;
+    }
 
+    public void setCreatedTimeStamp(Long createdTimeStamp) {
+        this.createdTimeStamp = createdTimeStamp;
+    }
 
     @ManyToOne(fetch = FetchType.LAZY) // owning side of relationship
     @JoinColumn(name = "user_fk")

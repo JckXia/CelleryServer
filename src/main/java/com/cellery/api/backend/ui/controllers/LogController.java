@@ -4,6 +4,7 @@ import com.cellery.api.backend.shared.LogDto;
 import com.cellery.api.backend.shared.UserDto;
 import com.cellery.api.backend.shared.Util.JwtUtil;
 import com.cellery.api.backend.shared.Util.MapperUtil;
+import com.cellery.api.backend.ui.model.request.CreateLogRequestModel;
 import com.cellery.api.backend.ui.model.request.UpdateLogRequestModel;
 import com.cellery.api.backend.ui.model.response.CreateLogRespModel;
 import com.cellery.api.backend.ui.model.response.UpdateLogRespModel;
@@ -45,7 +46,8 @@ public class LogController {
     }
 
     @PostMapping
-    public ResponseEntity<CreateLogRespModel> createLog(@RequestHeader(value = "${authentication.authorization}") String auth) {
+    public ResponseEntity<CreateLogRespModel> createLog(@RequestHeader(value = "${authentication.authorization}") String auth ,
+                                                        @Valid @RequestBody CreateLogRequestModel logCreation) {
 
         try {
             String authToken = auth.replace(env.getProperty("authentication.bearer"), "");
@@ -53,8 +55,7 @@ public class LogController {
             if (!jwtUtil.validateToken(authToken, userDto)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
             }
-
-            LogDto logCreationObject = logsService.createLog(userDto.getEmail());
+            LogDto logCreationObject = logsService.createLog(logCreation, userDto.getEmail());
             // We need to get the userDto (current user, and create it using a serviceImpl)
             CreateLogRespModel returnModel = modelMapper.strictMapper().map(logCreationObject, CreateLogRespModel.class);
             return ResponseEntity.status(HttpStatus.CREATED).body(returnModel);
@@ -76,7 +77,7 @@ public class LogController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
             }
 
-            if (!logsService.logBelongsToUser(userDto.getEmail(), log_id)) {
+            if (!logsService.logBelongsToUser(userDto.getEmail(), log_id) && !logsService.logCanBeEdited(logUpdates,log_id)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
             }
 
