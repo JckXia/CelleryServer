@@ -5,6 +5,7 @@ import com.cellery.api.backend.shared.UserDto;
 import com.cellery.api.backend.shared.Util.JwtUtil;
 import com.cellery.api.backend.shared.Util.MapperUtil;
 import com.cellery.api.backend.ui.model.request.ProductsInRoutineRequestModel;
+import com.cellery.api.backend.ui.model.response.AmPmRoutineRespModel;
 import com.cellery.api.backend.ui.model.response.RoutineRespModel;
 import com.cellery.api.backend.ui.service.RoutinesService;
 import com.cellery.api.backend.ui.service.UsersService;
@@ -52,7 +53,7 @@ public class RoutineController {
 
     // get all routines
     @GetMapping
-    public ResponseEntity<List<RoutineRespModel>> getRoutines(@RequestHeader(value = "${authentication.authorization}") String auth) {
+    public ResponseEntity<AmPmRoutineRespModel> getRoutines(@RequestHeader(value = "${authentication.authorization}") String auth) {
         try {
             auth = auth.replace(env.getProperty("authentication.bearer"), "");
             UserDto userDto = getUserDto(auth);
@@ -62,7 +63,11 @@ public class RoutineController {
             }
 
             List<RoutineDto> usersRoutines = routinesService.getRoutines(jwtUtil.getEmailFromToken(auth));
-            List<RoutineRespModel> returnVal = mapper.strictMapper().map(usersRoutines, routineRespModelListType());
+            List<RoutineRespModel> routines = mapper.strictMapper().map(usersRoutines, routineRespModelListType());
+
+            // distinguish between am and pm routine
+            AmPmRoutineRespModel returnVal = new AmPmRoutineRespModel(routines);
+
             return ResponseEntity.status(HttpStatus.OK).body(returnVal);
 
         } catch (UsernameNotFoundException e) {
@@ -83,7 +88,7 @@ public class RoutineController {
             }
 
             // create routine and add it to user
-            RoutineDto createdDto = routinesService.createRoutine(jwtUtil.getEmailFromToken(auth), createRoutine.getProductIds());
+            RoutineDto createdDto = routinesService.createRoutine(jwtUtil.getEmailFromToken(auth), createRoutine.getProductIds(), createRoutine.getIsAm());
 
             RoutineRespModel returnVal = mapper.strictMapper().map(createdDto, RoutineRespModel.class);
             return ResponseEntity.status(HttpStatus.CREATED).body(returnVal);
@@ -105,7 +110,7 @@ public class RoutineController {
             auth = auth.replace(env.getProperty("authentication.bearer"), "");
             UserDto userDto = getUserDto(auth);
 
-            if (!jwtUtil.validateToken(auth, userDto)) { // max routines a user can have is 2
+            if (!jwtUtil.validateToken(auth, userDto)) {
                 return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(null);
             }
 
@@ -113,6 +118,33 @@ public class RoutineController {
             return ResponseEntity.status(HttpStatus.OK).body("Successfully deleted routine");
 
         } catch (UsernameNotFoundException | FileNotFoundException e) { // user or routine does not exist
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
+
+    // replace routine's products
+    @PatchMapping(path = "/{id}")
+    public ResponseEntity<RoutineRespModel> updateProductsInRoutine(@PathVariable String id,
+                                                                    @Valid @RequestBody ProductsInRoutineRequestModel replaceProducts,
+                                                                    @RequestHeader(value = "${authentication.authorization}") String auth) {
+        try {
+            auth = auth.replace(env.getProperty("authentication.bearer"), "");
+            UserDto userDto = getUserDto(auth);
+
+            if (!jwtUtil.validateToken(auth, userDto)) {
+                return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(null);
+            }
+
+            RoutineDto returnDto = routinesService.updateProductsInRoutine(jwtUtil.getEmailFromToken(auth), id, replaceProducts.getProductIds());
+
+            if (returnDto != null) {
+                RoutineRespModel returnVal = mapper.strictMapper().map(returnDto, RoutineRespModel.class);
+                return ResponseEntity.status(HttpStatus.OK).body(returnVal);
+            }
+            return ResponseEntity.status(HttpStatus.OK).body(null);
+
+        } catch (UsernameNotFoundException | FileNotFoundException e) {
+            // when user or routine does not exist
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
@@ -126,7 +158,7 @@ public class RoutineController {
             auth = auth.replace(env.getProperty("authentication.bearer"), "");
             UserDto userDto = getUserDto(auth);
 
-            if (!jwtUtil.validateToken(auth, userDto)) { // max routines a user can have is 2
+            if (!jwtUtil.validateToken(auth, userDto)) {
                 return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(null);
             }
 

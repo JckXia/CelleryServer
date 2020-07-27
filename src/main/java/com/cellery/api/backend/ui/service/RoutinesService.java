@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileNotFoundException;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -47,7 +48,7 @@ public class RoutinesService {
     }
 
     @Transactional // do in one db transaction
-    public RoutineDto createRoutine(String email, List<String> addProducts) throws RuntimeException, FileNotFoundException {
+    public RoutineDto createRoutine(String email, List<String> addProducts, Boolean isAm) throws RuntimeException, FileNotFoundException {
         if (addProducts.isEmpty()) {
             throw new FileNotFoundException("Cannot create routine with no products");
         }
@@ -57,6 +58,7 @@ public class RoutinesService {
 
         RoutineEntity routineEntity = new RoutineEntity();
         routineEntity.setRoutineId(UUID.randomUUID().toString());
+        routineEntity.setIsAm(isAm);
 
         // add user to routine
         UserEntity userEntity = usersRepository.getOneByEmail(email); // get ref to db object
@@ -96,6 +98,32 @@ public class RoutinesService {
         usersRepository.save(user);
 
         routinesRepository.delete(toDelete);
+    }
+
+    // set routine's products with the new products
+    public RoutineDto updateProductsInRoutine(String email, String routineId, List<String> products) throws FileNotFoundException {
+        if (!routinesRepository.existsByRoutineId(routineId) || !userUtil.routineBelongsToUser(email, routineId)) {
+            throw new FileNotFoundException("Routine does not exist");
+        }
+
+        if (products.size() == 0) {
+            throw new FileNotFoundException("Trying to update into an empty routine");
+        }
+
+        userUtil.productsBelongToUser(email, products);
+
+        RoutineEntity routine = routinesRepository.getOneByRoutineId(routineId);
+
+        List<ProductEntity> productEntities = new ArrayList<>();
+        for (String productId : products) {
+            productEntities.add(productsRepository.findByProductId(productId));
+        }
+
+        routine.setProducts(productEntities);
+        routinesRepository.save(routine);
+
+        RoutineDto returnDto = mapper.strictMapper().map(routine, RoutineDto.class);
+        return returnDto;
     }
 
     // products still EXIST in db they ARE NOT DELETED FROM THE DB EVEN IF REMOVED FROM A ROUTINE
