@@ -34,24 +34,17 @@ public class LogEntity implements Serializable {
     @Column
     private Boolean isTimeOfMonth;
 
-    @Column
-    private int yearValue;
 
-    @Column
-    private int monthValue;
 
     @OneToMany(mappedBy = "logObject",cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
     private List<ImageEntity> logImages = new ArrayList<>();
 
-    @Column
-    private int dayValue;
 
 
     @Column
     private Long createdTimeStamp;
 
-    @Column
-    private String createdAt;
+
 
     @Column
     private String amRoutine;
@@ -75,7 +68,6 @@ public class LogEntity implements Serializable {
     public UserEntity getLogUser() {
         return logUser;
     }
-
 
 
     public void setLogUser(UserEntity logUser) {
@@ -142,38 +134,6 @@ public class LogEntity implements Serializable {
 
     public void setAmRoutine(String amRoutine) {
         this.amRoutine = amRoutine;
-    }
-
-    public String getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(String createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public int getDayValue() {
-        return dayValue;
-    }
-
-    public void setDayValue(int dayValue) {
-        this.dayValue = dayValue;
-    }
-
-    public int getMonthValue() {
-        return monthValue;
-    }
-
-    public void setMonthValue(int monthValue) {
-        this.monthValue = monthValue;
-    }
-
-    public int getYearValue() {
-        return yearValue;
-    }
-
-    public void setYearValue(int yearValue) {
-        this.yearValue = yearValue;
     }
 
     public Boolean getIsTimeOfMonth() {
