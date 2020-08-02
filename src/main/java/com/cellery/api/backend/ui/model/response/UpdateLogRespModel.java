@@ -3,6 +3,7 @@ package com.cellery.api.backend.ui.model.response;
 public class UpdateLogRespModel {
     private String amRoutine;
     private String pmRoutine;
+
     private String notes;
     private Integer rating;
     private Boolean isTimeOfMonth;

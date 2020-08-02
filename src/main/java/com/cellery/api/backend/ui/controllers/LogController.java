@@ -18,6 +18,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 
 @RestController
@@ -41,8 +42,8 @@ public class LogController {
 
     // /log
     @GetMapping
-    public String testReturn() {
-        return "testRest";
+    public List<LogDto> fetchLogRange(@RequestParam("startDateStamp") Long startDate, @RequestParam("endDateStamp") Long endDate) {
+        return logsService.getLogEntityBetweenTimeStamps(startDate,endDate);
     }
 
     @PostMapping

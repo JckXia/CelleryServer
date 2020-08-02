@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 // Create log
@@ -73,10 +74,13 @@ public class LogsService {
         }
         Long updateTimeStamp = logUpdateReq.getLogUpdateTimeStamp();
         Long logCreationStamp = logEntity.getCreatedTimeStamp();
-
         return utils.getDateFromEpoch(updateTimeStamp).equals(utils.getDateFromEpoch(logCreationStamp));
     }
 
+    public List<LogDto> getLogEntityBetweenTimeStamps(Long startDate, Long endDate){
+        List<LogEntity> logEntityObjects = logsRepository.findAllBetweenRange(startDate,endDate);
+        return logEntityObjects.stream().map(logEntity -> mapper.strictMapper().map(logEntity,LogDto.class)).collect(Collectors.toList());
+    }
 
     public LogDto updateLogEntity(UpdateLogRequestModel requestObject, String logId) {
         LogEntity logEntity = logsRepository.findByLogId(logId);

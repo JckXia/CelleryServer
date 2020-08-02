@@ -12,6 +12,15 @@ public class LogDto implements Serializable {
     private String pmRoutine;
     private String createdAt;
     private Boolean isTimeOfMonth;
+    private Long createdTimeStamp;
+
+    public Long getCreatedTimeStamp() {
+        return createdTimeStamp;
+    }
+
+    public void setCreatedTimeStamp(Long createdTimeStamp) {
+        this.createdTimeStamp = createdTimeStamp;
+    }
 
     public Boolean getIsTimeOfMonth() {
         return isTimeOfMonth;
