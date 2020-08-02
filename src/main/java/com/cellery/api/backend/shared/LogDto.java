@@ -5,6 +5,7 @@ import java.io.Serializable;
 public class LogDto implements Serializable {
     private static final long serialVersionUID = 34470962826401635L;
 
+
     private String logId;
     private String notes;
     private Integer rating;
@@ -13,6 +14,7 @@ public class LogDto implements Serializable {
     private String createdAt;
     private Boolean isTimeOfMonth;
     private Long createdTimeStamp;
+
 
     public Long getCreatedTimeStamp() {
         return createdTimeStamp;

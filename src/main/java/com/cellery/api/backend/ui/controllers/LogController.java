@@ -42,12 +42,24 @@ public class LogController {
 
     // /log
     @GetMapping
-    public List<LogDto> fetchLogRange(@RequestParam("startDateStamp") Long startDate, @RequestParam("endDateStamp") Long endDate) {
-        return logsService.getLogEntityBetweenTimeStamps(startDate,endDate);
+    public ResponseEntity<List<LogDto>> fetchLogRange(@RequestParam("startDateStamp") Long startDate,
+                                                      @RequestParam("endDateStamp") Long endDate,
+                                                      @RequestHeader(value = "${authentication.authorization}") String auth) {
+        try {
+            String authToken = auth.replace(env.getProperty("authentication.bearer"), "");
+            UserDto userDto = getUserDto(authToken);
+            if (!jwtUtil.validateToken(authToken, userDto)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+            }
+            List<LogDto> logDtoList = logsService.getLogEntityBetweenTimeStamps(userDto.getId(),startDate, endDate);
+            return ResponseEntity.status(HttpStatus.OK).body(logDtoList);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @PostMapping
-    public ResponseEntity<CreateLogRespModel> createLog(@RequestHeader(value = "${authentication.authorization}") String auth ,
+    public ResponseEntity<CreateLogRespModel> createLog(@RequestHeader(value = "${authentication.authorization}") String auth,
                                                         @Valid @RequestBody CreateLogRequestModel logCreation) {
 
         try {
@@ -68,8 +80,8 @@ public class LogController {
     @PutMapping(path = "/{log_id}", consumes = "application/json", produces =
             "application/json")
     public ResponseEntity<UpdateLogRespModel> updateLog(@PathVariable String log_id,
-                                                           @Valid @RequestBody UpdateLogRequestModel logUpdates,
-                                                           @RequestHeader(value = "${authentication.authorization}") String auth) {
+                                                        @Valid @RequestBody UpdateLogRequestModel logUpdates,
+                                                        @RequestHeader(value = "${authentication.authorization}") String auth) {
 
         try {
             String authToken = auth.replace(env.getProperty("authentication.bearer"), "");
@@ -78,12 +90,12 @@ public class LogController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
             }
 
-            if (!logsService.logBelongsToUser(userDto.getEmail(), log_id) && !logsService.logCanBeEdited(logUpdates,log_id)) {
+            if (!logsService.logBelongsToUser(userDto.getEmail(), log_id) && !logsService.logCanBeEdited(logUpdates, log_id)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
             }
 
             LogDto logUpdateObject = logsService.updateLogEntity(logUpdates, log_id);
-            UpdateLogRespModel returnLogUpdateModel = modelMapper.strictMapper().map(logUpdateObject,UpdateLogRespModel.class);
+            UpdateLogRespModel returnLogUpdateModel = modelMapper.strictMapper().map(logUpdateObject, UpdateLogRespModel.class);
             return ResponseEntity.status(HttpStatus.OK).body(returnLogUpdateModel);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);

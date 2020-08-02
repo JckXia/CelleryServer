@@ -6,6 +6,7 @@ import java.util.List;
 public class UserDto implements Serializable {
     private static final long serialVersionUID = -213909192348581234L;
 
+    private Integer id;
     private String userName;
     private String email;
     private String password;
@@ -13,6 +14,14 @@ public class UserDto implements Serializable {
     private String encryptedPassword;
     private List<RoutineDto> routines;
 
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
     public String getUserName() {
         return userName;

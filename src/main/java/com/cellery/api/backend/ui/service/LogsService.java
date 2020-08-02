@@ -77,7 +77,7 @@ public class LogsService {
         return utils.getDateFromEpoch(updateTimeStamp).equals(utils.getDateFromEpoch(logCreationStamp));
     }
 
-    public List<LogDto> getLogEntityBetweenTimeStamps(Long startDate, Long endDate){
+    public List<LogDto> getLogEntityBetweenTimeStamps(Integer userId, Long startDate, Long endDate){
         List<LogEntity> logEntityObjects = logsRepository.findAllBetweenRange(startDate,endDate);
         return logEntityObjects.stream().map(logEntity -> mapper.strictMapper().map(logEntity,LogDto.class)).collect(Collectors.toList());
     }
