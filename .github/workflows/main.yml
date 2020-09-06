@@ -43,6 +43,6 @@ jobs:
           version_label: v1
           region: ca-central-1
           deployment_package: jar.zip
-        
+          use_existing_version_if_available: true
       
       
