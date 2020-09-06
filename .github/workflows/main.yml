@@ -31,7 +31,7 @@ jobs:
         run: mvn clean install -DskipTests=true -Pproduction
          
       - name: Generate deployment package
-        run: zip -r jar.zip target/*.jar
+        run: zip -r celleryserver-$GITHUB_RUN_NUMBER.zip target/*.jar
 
       - name: Deploy to EB
         uses: einaregilsson/beanstalk-deploy@v11
@@ -40,8 +40,8 @@ jobs:
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: CelleryServer
           environment_name: Celleryserver-env
-          version_label: celleryserver-source-2
+          version_label: celleryserver-source-$GITHUB_RUN_NUMBER
           region: ca-central-1
-          deployment_package: jar.zip
+          deployment_package: celleryserver-$GITHUB_RUN_NUMBER.zip
           use_existing_version_if_available:  true
       
