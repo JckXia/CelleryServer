@@ -29,15 +29,12 @@ jobs:
         
       - name: Build with maven
         run: mvn clean install -DskipTests=true -Pproduction
-        
-      - name: Beanstalk Deploy
-        uses: JckXia/beanstalk-deploy@v11
-        
+         
       - name: Generate deployment package
         run: zip -r jar.zip target/*.jar
 
       - name: Deploy to EB
-        uses: JckXia/beanstalk-deploy@v11
+        uses: einaregilsson/beanstalk-deploy@v11
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
