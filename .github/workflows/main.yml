@@ -34,6 +34,6 @@ jobs:
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: CelleryBackendServer
           environment_name: CelleryServer-Prod
-          version_label: celleryserver-source-${{ github.run_number }}
+          version_label: "Sample Application-${{ github.run_number }}"
           region: ca-central-1
           deployment_package: deploy.zip    
