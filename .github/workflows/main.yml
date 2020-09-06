@@ -19,7 +19,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Check for github number 
-        uses: echo "celleryserver-source-${{ GITHUB_RUN_NUMBER }}"
+        uses: echo "celleryserver-source-${GITHUB_RUN_NUMBER}"
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout code
         uses: actions/checkout@v2      
@@ -43,7 +43,7 @@ jobs:
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: CelleryServer
           environment_name: Celleryserver-env
-          version_label: "celleryserver-source-${{ GITHUB_RUN_NUMBER }}"
+          version_label: "celleryserver-source-${GITHUB_RUN_NUMBER}"
           region: ca-central-1
           deployment_package: celleryserver-1.zip
           use_existing_version_if_available:  true
