@@ -8,9 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     steps:
- 
       - name: Checkout code
         uses: actions/checkout@v2      
       - name: Set up JDK 1.8
@@ -27,6 +25,9 @@ jobs:
       - name: Generate deployment package
         run: zip deploy.zip target/prod.jar Procfile
 
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
       - name: Deploy to EB
         uses: einaregilsson/beanstalk-deploy@v11
         with:
@@ -34,6 +35,7 @@ jobs:
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: CelleryBackendServer
           environment_name: CelleryServer-Prod
-          version_label: "Sample Application-${{ github.run_number }}"
+          version_label: v${{ github.run_number }}
           region: ca-central-1
-          deployment_package: deploy.zip    
+          deployment_package: deploy.zip 
+    
