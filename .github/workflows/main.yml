@@ -29,17 +29,12 @@ jobs:
         
       - name: Build with maven
         run: mvn clean install -DskipTests=true -Pproduction
-
-      - name: Check run number
-        run: echo $GITHUB_RUN_NUMBER
         
+      - name: Rename jar
+        run: mv target/*.jar target/prod.jar
+
       - name: Generate deployment package
-        run: zip deploy.zip target/*.jar
-        env:
-          VER: $GITHUB_RUN_NUMBER
-      
-      - name: Look at zip file name
-        run: ls *.zip
+        run: zip deploy.zip target/prod.jar Procfile
 
       - name: Deploy to EB
         uses: einaregilsson/beanstalk-deploy@v11
@@ -48,9 +43,6 @@ jobs:
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: CelleryServer
           environment_name: Celleryserver-env
-          version_label: ${{ github.sha }}
+          version_label: celleryserver-source-${{ github.run_number }}
           region: ca-central-1
-          deployment_package: target/backend-0.0.1-SNAPSHOT
-          use_existing_version_if_available:  true
-        env:
-         VER: $GITHUB_RUN_NUMBER      
+          deployment_package: deploy.zip    
