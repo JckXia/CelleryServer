@@ -1,1 +1,1 @@
-web: java -jar prod.jar
+web: java -jar -Dspring.profiles.active=prod prod.jar
