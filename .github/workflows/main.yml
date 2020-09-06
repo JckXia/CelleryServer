@@ -40,7 +40,7 @@ jobs:
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: CelleryServer
           environment_name: Celleryserver-env
-          version_label: celleryserver-source-1
+          version_label: celleryserver-source-4
           region: ca-central-1
           deployment_package: jar.zip
       
