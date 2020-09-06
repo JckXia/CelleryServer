@@ -43,8 +43,8 @@ jobs:
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: CelleryServer
           environment_name: CelleryServer-Prod
-          version_label: $GITHUB_RUN_NUMBER
-          region: ca-central-1
+          version_label: v1
+          region: us-west-2
           deployment_package: jar.zip
         
       
