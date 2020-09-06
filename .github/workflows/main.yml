@@ -29,7 +29,9 @@ jobs:
         
       - name: Build with maven
         run: mvn clean install -DskipTests=true -Pproduction
-         
+
+      - name: Check run number
+        run: echo $GITHUB_RUN_NUMBER
       - name: Generate deployment package
         run: zip -r "celleryserver-$GITHUB_RUN_NUMBER.zip" target/*.jar
 
@@ -40,7 +42,7 @@ jobs:
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: CelleryServer
           environment_name: Celleryserver-env
-          version_label: celleryserver-source-$GITHUB_RUN_NUMBER
+          version_label: "celleryserver-source-$GITHUB_RUN_NUMBER"
           region: ca-central-1
           deployment_package: "celleryserver-$GITHUB_RUN_NUMBER.zip"
           use_existing_version_if_available:  true
