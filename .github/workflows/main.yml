@@ -50,7 +50,7 @@ jobs:
           environment_name: Celleryserver-env
           version_label: ${{ github.sha }}
           region: ca-central-1
-          deployment_package: deploy.zip
+          deployment_package: target/backend-0.0.1-SNAPSHOT
           use_existing_version_if_available:  true
         env:
          VER: $GITHUB_RUN_NUMBER      
