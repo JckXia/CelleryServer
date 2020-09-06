@@ -34,7 +34,9 @@ jobs:
         run: echo $GITHUB_RUN_NUMBER
         
       - name: Generate deployment package
-        run: zip celleryserver-`${GITHUB_RUN_NUMBER}`.zip target/*.jar
+        run: zip celleryserver-${VER}.zip target/*.jar
+        env:
+          VER: $GITHUB_RUN_NUMBER
       
       - name: Look at zip file name
         run: ls *.zip
@@ -46,8 +48,9 @@ jobs:
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: CelleryServer
           environment_name: Celleryserver-env
-          version_label: celleryserver-source-`${GITHUB_RUN_NUMBER}`
+          version_label: celleryserver-source-${VER}
           region: ca-central-1
-          deployment_package: celleryserver-`${GITHUB_RUN_NUMBER}`.zip
+          deployment_package: celleryserver-${VER}.zip
           use_existing_version_if_available:  true
-      
+        env:
+         VER: $GITHUB_RUN_NUMBER      
