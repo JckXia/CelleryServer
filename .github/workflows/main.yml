@@ -18,10 +18,11 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - name: Check for github number 
+        uses: echo "celleryserver-source-${{ env.GITHUB_RUN_NUMBER }}"
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout code
-        uses: actions/checkout@v2
-        
+        uses: actions/checkout@v2      
       - name: Set up JDK 1.8
         uses: actions/setup-java@v1
         with:
@@ -33,7 +34,7 @@ jobs:
       - name: Check run number
         run: echo $GITHUB_RUN_NUMBER
       - name: Generate deployment package
-        run: zip -r "celleryserver-$GITHUB_RUN_NUMBER.zip" target/*.jar
+        run: zip -r celleryserver-1.zip target/*.jar
 
       - name: Deploy to EB
         uses: einaregilsson/beanstalk-deploy@v11
@@ -42,8 +43,8 @@ jobs:
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: CelleryServer
           environment_name: Celleryserver-env
-          version_label: "celleryserver-source-$GITHUB_RUN_NUMBER"
+          version_label: "celleryserver-source-${{ env.GITHUB_RUN_NUMBER }}"
           region: ca-central-1
-          deployment_package: "celleryserver-$GITHUB_RUN_NUMBER.zip"
+          deployment_package: celleryserver-1.zip
           use_existing_version_if_available:  true
       
