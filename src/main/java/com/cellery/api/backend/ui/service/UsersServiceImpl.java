@@ -1,6 +1,7 @@
 package com.cellery.api.backend.ui.service;
 
 import com.cellery.api.backend.shared.UserDto;
+import com.cellery.api.backend.shared.Util.JwtUtil;
 import com.cellery.api.backend.shared.Util.MapperUtil;
 import com.cellery.api.backend.ui.data.UserEntity;
 import com.cellery.api.backend.ui.data.UsersRepository;
@@ -22,13 +23,14 @@ public class UsersServiceImpl implements UsersService {
     BCryptPasswordEncoder bCryptPasswordEncoder;
     UsersRepository usersRepository;
     MapperUtil mapper;
-
+    JwtUtil jwtUtil;
 
     @Autowired
-    public UsersServiceImpl(BCryptPasswordEncoder bcryptPasswordEncoder, UsersRepository usersRepository, MapperUtil mapper) {
+    public UsersServiceImpl(BCryptPasswordEncoder bcryptPasswordEncoder, UsersRepository usersRepository, MapperUtil mapper, JwtUtil jwtUtil) {
         this.bCryptPasswordEncoder = bcryptPasswordEncoder;
         this.usersRepository = usersRepository;
         this.mapper = mapper;
+        this.jwtUtil = jwtUtil;
     }
 
     @Override
@@ -56,6 +58,16 @@ public class UsersServiceImpl implements UsersService {
             throw new UsernameNotFoundException("User " + email + " does not exist!");
         }
         return new ModelMapper().map(userEntityDbObject, UserDto.class);
+    }
+
+    @Override
+    public UserDto getUserDetailsFromToken(String jwtToken) {
+        String userEmail = jwtUtil.getEmailFromToken(jwtToken);
+        UserEntity userEntityObject = usersRepository.findByEmail(userEmail);
+        if(userEntityObject == null){
+            throw new UsernameNotFoundException("User "+userEmail+" does not exist!");
+        }
+        return new ModelMapper().map(userEntityObject,UserDto.class);
     }
 
     @Override
