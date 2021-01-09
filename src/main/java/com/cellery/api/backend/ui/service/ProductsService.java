@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,15 +21,17 @@ public class ProductsService {
     private ProductsRepository productsRepository;
     private RoutinesRepository routinesRepository;
     private UsersRepository usersRepository;
+    private RoutinesService routinesService;
     private MapperUtil mapper;
     private BelongsToUserUtil userUtil;
 
     @Autowired
     public ProductsService(ProductsRepository productsRepository, RoutinesRepository routinesRepository,
-                           UsersRepository usersRepository, MapperUtil mapper, BelongsToUserUtil userUtil) {
+                           UsersRepository usersRepository, RoutinesService routinesService, MapperUtil mapper, BelongsToUserUtil userUtil) {
         this.productsRepository = productsRepository;
         this.routinesRepository = routinesRepository;
         this.usersRepository = usersRepository;
+        this.routinesService = routinesService;
         this.mapper = mapper;
         this.userUtil = userUtil;
     }
@@ -87,28 +91,30 @@ public class ProductsService {
         // The product will be deleted regardless if it is in a routine or not. On the frontend, the user
         // will be prompted about the effects of deleting the product if it is in a routine (it will disappear from
         // routines it is in)
+        List<RoutineEntity> inRoutines = Collections.synchronizedList(new ArrayList<>(productEntity.getRoutines()));
 
         // check if the routine(s) that have this product have only 1 product, so deleting the product
         // will delete that routine too
-        List<RoutineEntity> inRoutines = productEntity.getRoutines();
+
         for (RoutineEntity routine : inRoutines) {
             if (routine.getProducts().size() == 1) {
-                routinesRepository.delete(routine); // goodbye
+                routine.removeProductFromRoutine(productEntity);
+                routinesService.deleteRoutine(email, routine.getRoutineId());
             } else {
-                // remove it from the routine
-                routine.removeProductFromRoutine(productEntity); // if we do not, the product still exists in db even after line 92 since routine is the parent
+                routine.removeProductFromRoutine(productEntity); // if we do not, the product still exists in db even after the last line
                 routinesRepository.save(routine);
             }
         }
+
         UserEntity user = productEntity.getProductUser();
         user.removeProductFromUser(productEntity);
         usersRepository.save(user);
+
         productsRepository.delete(productEntity);
     }
 
-    /* In a list of products to delete, if one product does not exist, we will
-        continue iterating over the remaining products. An exception does not stop the loop.
-        Returns the number of products deleted
+    /* In a list of products to delete, if an exception occurs, throws it.
+        Returns the number of products deleted if no exception thrown
      */
     public Integer deleteProducts(String email, List<String> ids) throws FileNotFoundException {
         Integer numDeleted = 0;
@@ -118,12 +124,8 @@ public class ProductsService {
 
         // any exceptions in the loop come from the product not existing in the db but still owned by the user
         for (String id : ids) {
-            try {
-                deleteProduct(email, id);
-                ++numDeleted;
-            } catch (FileNotFoundException e) {
-                /* I know! This is strange and definitely not the cleanest way to deal with our case */
-            }
+            deleteProduct(email, id);
+            ++numDeleted;
         }
         return numDeleted;
     }
@@ -136,12 +138,13 @@ public class ProductsService {
         // get ref db object
         ProductEntity productEdit = productsRepository.getOneByProductId(product.getProductId());
 
-        if (!product.getName().isEmpty() && product.getName() != null && !product.getName().equals(productEdit.getName())) {
+        if (product.getName() != null && !product.getName().isEmpty() && !product.getName().equals(productEdit.getName())) {
             productEdit.setName(product.getName());
         }
 
         // product desc is allowed to be empty
-        if (!product.getDescription().equals(productEdit.getDescription())) {
+        if (product.getDescription() == null || product.getDescription().isEmpty() ||
+                (product.getDescription() != null && !product.getDescription().equals(productEdit.getDescription()))) {
             productEdit.setDescription(product.getDescription());
         }
 
